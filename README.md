@@ -1,6 +1,6 @@
 # DUCK HUNT JS v4.0
 
-[Play the game](https://erickwendel.github.io/DuckHunt-JS/game/dist/)
+[Play the game](https://erickwendel.github.io/DuckHunt-JS)
 
 This is a GitHub fork that extends the [MattSurabian 's DuckHunt Implementation.](https://github.com/MattSurabian/DuckHunt-JS)
 
