@@ -2,10 +2,16 @@
 
 [Play the game](#)
 
-This is a GitHub fork that extends the [MattSurabian](https://github.com/MattSurabian/DuckHunt-JS)'s DuckHunt Implementation.
+This is a GitHub fork that extends the [MattSurabian 's DuckHunt Implementation.](https://github.com/MattSurabian/DuckHunt-JS)
 
 This fork enables you to use your phone as a machine gun in the game.
 
+## Prints
+### Machine Gun on the Phone
+![](./prints/magine-gun.jpeg)
+
+### App running on Desktop
+![](./prints/app-running.jpeg)
 ## About
 
 This is an implementation of DuckHunt in Javascript and HTML5. It uses the PixiJS rendering engine, Green Sock Animations, Howler, and Bluebird Promises.
@@ -52,3 +58,13 @@ Please report bugs as [issues](https://github.com/MattSurabian/DuckHunt-JS/issue
 
 ## Contributing
 Pull requests are welcome! Please ensure code style and quality compliance with `npm run lint` and include any built files.
+
+## Credits
+
+- The Mobile Controller Machine Gun was extended from [Hoangquan123](@Hoangquan123)'s [Code Pen](https://codepen.io/Hoangquan123/pen/QzepvV)
+- Thanks to [Hoangquan123](@Hoangquan123) for his amazing job creating the first version of [DuckHunt-JS](https://github.com/MattSurabian/DuckHunt-JS)
+- My aim icon was free downloaded on [iconfinder.com](https://www.iconfinder.com/search?q=aim&price=free)
+- Here other links that helped me reach this result:
+  - https://accelerometerdemo.netlify.app/
+  - https://www.sitepoint.com/using-device-orientation-html5/
+  - https://web.dev/native-hardware-device-orientation/
