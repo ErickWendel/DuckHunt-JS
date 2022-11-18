@@ -1,0 +1,114 @@
+<!DOCTYPE HTML>
+<meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
+<html>
+
+<head>
+  <title>DuckHuntJS</title>
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="description"
+    content="An open source, web based, responsive implementation of Duck Hunt in canvas or webgl depending on your client.">
+  <meta name="author" content="Matt Surabian">
+  <style>
+    body {
+      overflow: hidden;
+      margin: 0;
+      padding: 0;
+      background-color: #000000;
+
+      /* The image used */
+      background-image: url(https://super.abril.com.br/wp-content/uploads/2018/07/duck-hunt.png);
+
+      /* Full height */
+      height: 100%;
+
+      /* Center and scale the image nicely */
+      background-position: center;
+      background-repeat: no-repeat;
+      background-size: cover;
+    }
+
+    a.link:link,
+    a.link:visited {
+      color: rgb(151, 224, 14);
+      background-color: transparent;
+      /* text-decoration: none; */
+    }
+
+    a.link:hover {
+      color: rgb(173, 255, 20);
+      background-color: transparent;
+      /* text-decoration: none; */
+    }
+
+    a.social:link,
+    a.social:visited {
+      color: rgb(235, 255, 20);
+      background-color: transparent;
+      /* text-decoration: none; */
+    }
+
+    a.social:hover {
+      color: rgb(255, 255, 20);
+      background-color: transparent;
+      /* text-decoration: none; */
+    }
+
+    /* https://codepen.io/elijas/pen/xvyYQz */
+    .intro {
+      width: 100%;
+      min-height: 75vh;
+      /* from Unsplash */
+      margin-top: 50px;
+
+      /* This is what centers it */
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .intro p {
+      color: #fff;
+      font-family: 'Museo Sans', Avenir, 'Helvetica Neue', Helvetica, sans-serif;
+      font-weight: 500;
+      text-align: center;
+      font-size: 9vmin;
+      /* If you want to be extra-fancy */
+      line-height: 110%;
+      text-shadow: 0.05em 0.05em 0.1em #000;
+      text-shadow: 0 0.025em 0.05em rgba(0, 0, 0, 0.75), 0 0.05em 0.1em rgba(0, 0, 0, 0.5);
+    }
+
+    .font-smaller {
+      color: #fff;
+      font-family: 'Museo Sans', Avenir, 'Helvetica Neue', Helvetica, sans-serif;
+      font-weight: 500;
+      text-align: center;
+      font-size: 5vmin;
+      margin-top: 10%;
+      /* If you want to be extra-fancy */
+      line-height: 110%;
+      text-shadow: 0.05em 0.05em 0.1em #000;
+      text-shadow: 0 0.025em 0.05em rgba(0, 0, 0, 0.75), 0 0.05em 0.1em rgba(0, 0, 0, 0.5);
+    }
+  </style>
+  <script src="duckhunt.js"></script>
+</head>
+
+<body>
+  <section id="intro" class="intro">
+    <p> To start playing, <br><a id="joystick-link" class="link" target="_blank" href="#">paste and browse this link</a>
+      <br>on your
+      mobile phone
+      <br>
+      <i class="font-smaller"> <a class="social" href="https://twitter.com/erickwendel_" target="_blank" >Follow me</a></i>
+      <br>
+      <br>
+      <br>
+      <br>
+    </p>
+
+  </section>
+</body>
+
+</html>
