@@ -14,17 +14,8 @@ document.addEventListener('DOMContentLoaded', function() {
     id
   }) => {
     const link = document.getElementById('joystick-link');
-    const url = `${SERVER_URL}?id=${id}`;
-    const qr = document.getElementById('joystick-qr');
-    debugger
-    qr.setAttribute(
-      'src',
-      `https://chart.googleapis.com/chart?cht=qr&chs=512&chl=${encodeURIComponent(url)}&choe=UTF-8`
-    );
     if (!link) return;
-    link.setAttribute('href', url);
-    link.style.display = null;
-    // Use google api to render qr code with encoded url
+    link.setAttribute('href', `${SERVER_URL}?id=${id}`);
   });
 
   // once something is received, initializes the game
