@@ -2,7 +2,7 @@ import Game from './src/modules/Game';
 import Socket from './src/modules/Socket';
 import Event from 'events';
 
-const SERVER_URL = 'https://192.168.68.107:3000';
+const SERVER_URL = 'https://duckhunt-controller.herokuapp.com';
 
 document.addEventListener('DOMContentLoaded', function() {
   const eventEmitter = new Event();
