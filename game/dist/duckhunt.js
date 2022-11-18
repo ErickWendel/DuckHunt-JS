@@ -40258,7 +40258,7 @@ var _events2 = _interopRequireDefault(_events);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-var SERVER_URL = 'https://192.168.68.107:3000';
+var SERVER_URL = 'https://duckhunt-controller.herokuapp.com';
 
 document.addEventListener('DOMContentLoaded', function () {
   var eventEmitter = new _events2.default();
