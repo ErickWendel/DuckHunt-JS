@@ -1,0 +1,25 @@
+{
+  "name": "mobile-controller",
+  "version": "0.0.1",
+  "description": "Mobile Joystick to control DuckHuntJS game using Gyroscope",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server/index.js",
+    "dev": "npx nodemon server/index.js"
+  },
+  "keywords": [],
+  "author": "erickwendel",
+  "license": "ISC",
+  "engines": {
+    "node": "18"
+  },
+  "devDependencies": {
+    "nodemon": "2.0.20"
+  },
+  "dependencies": {
+    "cors": "2.8.5",
+    "express": "4.18.2",
+    "socket.io": "4.5.3"
+  }
+}
