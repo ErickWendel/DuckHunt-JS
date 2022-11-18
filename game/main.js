@@ -16,6 +16,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const link = document.getElementById('joystick-link');
     const url = `${SERVER_URL}?id=${id}`;
     const qr = document.getElementById('joystick-qr');
+    debugger
     qr.setAttribute(
       'src',
       `https://chart.googleapis.com/chart?cht=qr&chs=512&chl=${encodeURIComponent(url)}&choe=UTF-8`
