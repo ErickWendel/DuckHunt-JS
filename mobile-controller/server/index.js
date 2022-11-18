@@ -1,20 +1,14 @@
-import fs from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { join, dirname } from 'node:path'
-import { createServer } from 'node:https'
+import { createServer } from 'node:http'
 
 import cors from 'cors'
 import express from 'express'
 import { Server } from 'socket.io'
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..')
-const options = {
-  key: fs.readFileSync(join(root, 'credentials', 'key.pem')),
-  cert: fs.readFileSync(join(root, 'credentials', 'cert.pem'))
-}
-
 const app = express()
-const server = createServer(options, app)
+const server = createServer(app)
 const io = new Server(server, {
   cors: {
     origin: '*',
