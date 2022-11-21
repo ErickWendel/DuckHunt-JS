@@ -1,59 +1,63 @@
 <!DOCTYPE html>
 <html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DuckHunt Gyroscope Controller</title>
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta
+      name="description"
+      content="An open source, web based, responsive implementation of Duck Hunt Controller"
+    />
+    <meta name="author" content="Erick Wendel" />
 
-<head>
-  <meta charset="UTF-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>DuckHunt Gyroscope Controller </title>
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="description" content="An open source, web based, responsive implementation of Duck Hunt Controller">
-  <meta name="author" content="Erick Wendel">
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.5.3/socket.io.js"
+      integrity="sha512-iWPnCISAd/J+ZacwV2mbNLCaPGRrRo5OS81lKTVPtRg1wGTC20Cfmp5Us5RcbLv42QLdbAWl0MI57yox5VecQg=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    ></script>
+    <script defer src="animation.js" type="module"></script>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.5.3/socket.io.js"
-    integrity="sha512-iWPnCISAd/J+ZacwV2mbNLCaPGRrRo5OS81lKTVPtRg1wGTC20Cfmp5Us5RcbLv42QLdbAWl0MI57yox5VecQg=="
-    crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-   <link rel="stylesheet" href="./styles.css">
-</head>
+  <body>
+    <div id="shotgun"></div>
+    <div id="shotgun1"></div>
+    <div id="shotgun2"></div>
+    <div id="shotgun3"></div>
+    <div id="shotgun4"></div>
+    <div id="shotgun5"></div>
+    <div id="shotgun6"></div>
+    <div id="shotgun7"></div>
+    <div id="shotgun8"></div>
+    <div id="shotgun9"></div>
+    <div id="shotgun10"></div>
+    <div id="shotgun11"></div>
+    <div id="shotgun12"></div>
+    <div id="shotgun13"></div>
+    <div id="shotgun14"></div>
+    <div id="dot"></div>
+    <div id="dot1"></div>
+    <div id="dot2"></div>
+    <div id="bullet"></div>
+    <div id="bullet1"></div>
+    <div id="bullet2"></div>
+    <div id="bullet3"></div>
+    <div id="bullet4"></div>
+    <div id="bullet5"></div>
+    <div id="bullet6"></div>
+    <div id="bullet7"></div>
+    <div id="bullet8"></div>
 
-<body>
-  <div id="shotgun"></div>
-  <div id="shotgun1"></div>
-  <div id="shotgun2"></div>
-  <div id="shotgun3"></div>
-  <div id="shotgun4"></div>
-  <div id="shotgun5"></div>
-  <div id="shotgun6"></div>
-  <div id="shotgun7"></div>
-  <div id="shotgun8"></div>
-  <div id="shotgun9"></div>
-  <div id="shotgun10"></div>
-  <div id="shotgun11"></div>
-  <div id="shotgun12"></div>
-  <div id="shotgun13"></div>
-  <div id="shotgun14"></div>
-  <div id="dot"></div>
-  <div id="dot1"></div>
-  <div id="dot2"></div>
-  <div id="bullet"></div>
-  <div id="bullet1"></div>
-  <div id="bullet2"></div>
-  <div id="bullet3"></div>
-  <div id="bullet4"></div>
-  <div id="bullet5"></div>
-  <div id="bullet6"></div>
-  <div id="bullet7"></div>
-  <div id="bullet8"></div>
-
-
-  <!-- <button id="start" onclick="window.start()">....START....</button>
+    <!-- <button id="start" onclick="window.start()">....START....</button>
   <button id="stop" onclick="window.stop()">....STOP....</button>
   <output id="status"></output>
   <br />
   Log:
   <pre id="log" style="border: 1px solid #ccc;"></pre> -->
 
-  <script type="module" src="./src/index.js"></script>
-</body>
-
+    <script type="module" src="./src/index.js"></script>
+  </body>
 </html>
