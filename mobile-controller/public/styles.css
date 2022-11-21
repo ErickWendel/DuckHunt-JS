@@ -241,10 +241,13 @@ html{
   left:584px;
   /* animation: bang 1.1s infinite; */
   transform:rotatez(10deg);
+  opacity: 0;
   }
 @keyframes bang{
-  0%{position:absolute;}
- 100%{left:1000px;}
+  0%   {position:absolute}
+  20%  {opacity: 1}
+  80%  {left:1000px}
+  100% {opacity: 0 }
 }
 #bullet1{
   width:80px;
@@ -256,10 +259,13 @@ html{
   left:584px;
   /* animation: bangg 1.1s infinite; */
   transform:rotatez(-5deg);
+  opacity: 0;
   }
 @keyframes bangg{
-  0%{position:absolute;}
- 100%{left:900px;}
+  0%   {position:absolute}
+  20%  {opacity: 1}
+  80%  {left:900px}
+  100% {opacity: 0 }
 }
 #bullet2{
   width:120px;
@@ -270,10 +276,13 @@ html{
   top:115px;
   left:584px;
   /* animation: banggg 1.1s infinite; */
+  opacity: 0;
   }
 @keyframes banggg{
-  0%{position:absolute;}
-  100%{left:870px;}
+  0%   {position:absolute}
+  20%  {opacity: 1}
+  80%  {left:870px}
+  100% {opacity: 0 }
 }
 #bullet3{
   width:70px;
@@ -285,10 +294,13 @@ html{
   left:584px;
   /* animation: bangggg 1.1s infinite; */
   transform:rotatez(15deg);
+  opacity: 0;
   }
 @keyframes bangggg{
-  0%{position:absolute;}
- 100%{left:960px;}
+  0%   {position:absolute}
+  20%  {opacity: 1}
+  80%  {left:960px}
+  100% {opacity: 0 }
 }
 #bullet4{
   width:60px;
@@ -300,10 +312,13 @@ html{
   left:584px;
   /* animation: banggg2 1.1s infinite; */
   transform:rotatez(-15deg);
+  opacity: 0;
   }
 @keyframes banggg2{
-  0%{position:absolute;}
-  100%{left:850px;}
+  0%   {position:absolute}
+  20%  {opacity: 1}
+  80%  {left:850px}
+  100% {opacity: 0 }
 }
 #bullet5{
   width:60px;
@@ -315,10 +330,13 @@ html{
   left:584px;
   /* animation: banggg3 1.1s infinite; */
   transform:rotatez(5deg);
+  opacity: 0;
   }
 @keyframes banggg3{
-  0%{position:absolute;}
-  100%{left:850px;}
+  0%   {position:absolute}
+  20%  {opacity: 1}
+  80%  {left:850px}
+  100% {opacity: 0 }
 }
 #bullet6{
   width:100px;
@@ -330,10 +348,13 @@ html{
   left:584px;
   /* animation: banggg4 1.1s infinite; */
   transform:rotatez(5deg);
+  opacity: 0;
   }
 @keyframes banggg4{
-  0%{position:absolute;}
-  100%{left:880px;}
+  0%   {position:absolute}
+  20%  {opacity: 1}
+  80%  {left:880px}
+  100% {opacity: 0 }
 }
 #bullet7{
   width:90px;
@@ -345,10 +366,13 @@ html{
   left:584px;
   /* animation: banggg5 1.1s infinite; */
   transform:rotatez(-5deg);
+  opacity: 0;
   }
 @keyframes banggg5{
-  0%{position:absolute;}
-  100%{left:1000px;}
+  0%   {position:absolute}
+  20%  {opacity: 1}
+  80%  {left:1000px}
+  100% {opacity: 0 }
 }
 #bullet8{
   width:80px;
@@ -360,8 +384,11 @@ html{
   left:584px;
   /* animation: banggg6 1.1s infinite; */
   transform:rotatez(-8deg);
+  opacity: 0;
   }
 @keyframes banggg6{
-  0%{position:absolute;}
-  100%{left:980px;}
+  0%   {position:absolute}
+  20%  {opacity: 1}
+  80%  {left:980px}
+  100% {opacity: 0 }
 }
