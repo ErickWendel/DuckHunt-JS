@@ -61,8 +61,8 @@ Pull requests are welcome! Please ensure code style and quality compliance with 
 
 ## Credits
 
-- The Mobile Controller Machine Gun was extended from [Hoangquan123](@Hoangquan123)'s [Code Pen](https://codepen.io/Hoangquan123/pen/QzepvV)
-- Thanks to [Hoangquan123](@Hoangquan123) for his amazing job creating the first version of [DuckHunt-JS](https://github.com/MattSurabian/DuckHunt-JS)
+- The Mobile Controller Machine Gun was extended from [Hoangquan123](https://github.com/Hoangquan123)'s [Code Pen](https://codepen.io/Hoangquan123/pen/QzepvV)
+- Thanks to [MattSurabian](https://github.com/MattSurabian) for his amazing job creating the first version of [DuckHunt-JS](https://github.com/MattSurabian/DuckHunt-JS)
 - My aim icon was free downloaded on [iconfinder.com](https://www.iconfinder.com/search?q=aim&price=free)
 - Here other links that helped me reach this result:
   - https://accelerometerdemo.netlify.app/
