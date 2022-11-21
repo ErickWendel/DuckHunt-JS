@@ -3,6 +3,9 @@ html{
   /* animation: Pew 1.1s infinite; */
   transform: scaleX(-1);
 }
+body {
+  transform: translate(0, 40vh) rotate(-90deg);
+}
 @keyframes Pew{
   0%{background-color:yellow;}
 }
