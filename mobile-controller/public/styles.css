@@ -255,6 +255,9 @@ html{
   80%  {left:1000px}
   100% {opacity: 0 }
 }
+.bullets {
+  opacity: 0;
+}
 #bullet1{
   width:80px;
   height:10px;
@@ -263,7 +266,7 @@ html{
   position:absolute;
   top:90px;
   left:584px;
-  /* animation: bangg 1.1s infinite; */
+  animation: bangg 1.1s infinite;
   transform:rotatez(-5deg);
   opacity: 0;
   }
@@ -281,7 +284,7 @@ html{
   position:absolute;
   top:115px;
   left:584px;
-  /* animation: banggg 1.1s infinite; */
+  animation: banggg 1.1s infinite;
   opacity: 0;
   }
 @keyframes banggg{
@@ -298,7 +301,7 @@ html{
   position:absolute;
   top:160px;
   left:584px;
-  /* animation: bangggg 1.1s infinite; */
+  animation: bangggg 1.1s infinite;
   transform:rotatez(15deg);
   opacity: 0;
   }
@@ -316,7 +319,7 @@ html{
   position:absolute;
   top:80px;
   left:584px;
-  /* animation: banggg2 1.1s infinite; */
+  animation: banggg2 1.1s infinite;
   transform:rotatez(-15deg);
   opacity: 0;
   }
@@ -334,7 +337,7 @@ html{
   position:absolute;
   top:160px;
   left:584px;
-  /* animation: banggg3 1.1s infinite; */
+  animation: banggg3 1.1s infinite;
   transform:rotatez(5deg);
   opacity: 0;
   }
@@ -352,7 +355,7 @@ html{
   position:absolute;
   top:140px;
   left:584px;
-  /* animation: banggg4 1.1s infinite; */
+  animation: banggg4 1.1s infinite;
   transform:rotatez(5deg);
   opacity: 0;
   }
@@ -370,7 +373,7 @@ html{
   position:absolute;
   top:100px;
   left:584px;
-  /* animation: banggg5 1.1s infinite; */
+  animation: banggg5 1.1s infinite;
   transform:rotatez(-5deg);
   opacity: 0;
   }
@@ -388,7 +391,7 @@ html{
   position:absolute;
   top:90px;
   left:584px;
-  /* animation: banggg6 1.1s infinite; */
+  animation: banggg6 1.1s infinite;
   transform:rotatez(-8deg);
   opacity: 0;
   }
