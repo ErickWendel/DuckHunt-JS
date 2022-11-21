@@ -74,6 +74,12 @@ html{
   top:170px;
   left:160px;
   transform:rotatez(-20deg);
+  /* animation: trigger 1.1s infinite; */
+}
+
+@keyframes trigger{
+    20%{transform: rotate(20deg);}
+    40%{transform: rotate(-20deg);}
 }
 #shotgun6{
   width:10px;
