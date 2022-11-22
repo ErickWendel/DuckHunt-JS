@@ -29,9 +29,7 @@ const stopAnimation = () => {
   animationMapKeys.forEach(key => ($(key).style.animation = ''));
 };
 
-const startAnimation = e => {
-  e.preventDefault;
-
+const startAnimation = () => {
   // stops current animation
   stopAnimation();
 
@@ -43,4 +41,4 @@ const startAnimation = e => {
   shoot();
 };
 
-$('html').addEventListener('click', startAnimation);
+export default startAnimation;
