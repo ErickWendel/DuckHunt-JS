@@ -8,7 +8,6 @@ class App {
     this.socket = {}
 
     this.connectedGameScreenId = ""
-    this.gameUrl = "http://localhost:8080"
     this.animationFrameLoop = {}
     this.acceleration = {
       x: 0,
