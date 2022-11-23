@@ -1,4 +1,5 @@
 import Util from "./util.js"
+import startAnimation from '../animation.js'
 
 const $ = document.querySelector.bind(document)
 
@@ -108,8 +109,8 @@ class App {
   }
 
   setupShooter() {
-
-    window.document.body.onclick = () => {
+    window.document.querySelector('html').onclick = () => {
+      startAnimation();
       this.socket.emit('shoot', {
         x: this.alphaZ * -1,
         y: this.gammaY,
