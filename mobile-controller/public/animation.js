@@ -1,17 +1,5 @@
 const $ = document.querySelector.bind(document);
 
-const animationMap = {
-  html: 'Pew 1.1s',
-  '#shotgun3': 'charge 0.55s alternate',
-  '#shotgun4': 'Peww 1.1s',
-  '#shotgun5': 'trigger 1.1s',
-  '#dot': 'cool 2s',
-  '#dot1': 'cooll 2s',
-  '#dot2': 'coolll 2s',
-};
-
-const animationMapKeys = Object.keys(animationMap);
-
 const shoot = () => {
   const base = $('.bullets');
   const newBullets = base.cloneNode(true);
@@ -26,7 +14,8 @@ const shoot = () => {
 };
 
 const stopAnimation = () => {
-  animationMapKeys.forEach(key => ($(key).style.animation = ''));
+  $('html').style.animation = '';
+  $('#root').classList.remove('animated');
 };
 
 const startAnimation = () => {
@@ -37,7 +26,8 @@ const startAnimation = () => {
   void $('html').offsetWidth;
 
   // start animation again
-  animationMapKeys.forEach(key => ($(key).style.animation = animationMap[key]));
+  $('html').style.animation = 'Pew 1.1s';
+  $('#root').classList.add('animated');
   shoot();
 };
 
