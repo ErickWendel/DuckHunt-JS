@@ -1,4 +1,4 @@
-import 'https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js';
+importScripts('https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js');
 
 let labels = [];
 let _model = null; // Move model outside so it's accessible for prediction

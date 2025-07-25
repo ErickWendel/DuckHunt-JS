@@ -19,6 +19,10 @@ document.addEventListener('DOMContentLoaded', async function () {
     eventEmitter.emit('shoot', data);
   });
 
+  Events.onRunModel(() => {
+    // eventEmitter.emit('run-model');
+  })
+
   const game = new Game({
     eventEmitter,
     container,

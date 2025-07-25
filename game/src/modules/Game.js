@@ -42,25 +42,6 @@ class Game {
     this.eventEmitter = opts.eventEmitter;
     this.container = opts.container;
 
-
-
-    this.app = new Application();
-    this.app.init({
-      width: CANVAS_WIDTH,
-      height: CANVAS_HEIGHT,
-      background: BLUE_SKY_COLOR,
-      resolution: window.devicePixelRatio || 1,
-      autoDensity: true,
-      resizeTo: undefined
-    }).then(() => {
-
-
-      this.container.appendChild(this.app.canvas);
-
-
-
-    });
-
     return this;
   }
 
@@ -264,6 +245,17 @@ class Game {
   }
 
   async load() {
+    this.app = new Application();
+    await this.app.init({
+      width: CANVAS_WIDTH,
+      height: CANVAS_HEIGHT,
+      background: BLUE_SKY_COLOR,
+      resolution: window.devicePixelRatio || 1,
+      autoDensity: true,
+      resizeTo: undefined
+    })
+    this.container.appendChild(this.app.canvas);
+
     this.textures = (await Assets.load(this.spritesheet)).textures;
     this.onLoad();
   }
@@ -283,14 +275,16 @@ class Game {
     this.startLevel();
     this.registerAimEvents();
     this.animate();
+    this.addToolBox();
 
+  }
+  addToolBox() {
     Object.assign(this.app.canvas.style, {
       width: `${CANVAS_WIDTH}px`,
       height: `${CANVAS_HEIGHT}px`,
       display: 'block',
     });
   }
-
   addFullscreenLink() {
     this.stage.hud.createTextBox('fullscreenLink', {
       style: BOTTOM_LINK_STYLE,
@@ -358,13 +352,17 @@ class Game {
   bindEvents() {
     window.addEventListener('resize', this.scaleToWindow.bind(this));
     this.eventEmitter.on('shoot', this._onShoot.bind(this));
-    // this.stage.mousedown = this.stage.touchstart = (event) => {
-    //   // this._onShoot(event.data.global);
-    //   this.eventEmitter.emit('user-shoot', event.data.global);
-    // };
 
     this.stage.on('pointerdown', (e) => {
       this._onShoot(e);
+      this.eventEmitter.emit('user-shoot', e.global);
+    });
+
+    this.eventEmitter.on('disable-aim', () => {
+      this.stage.aim.visible = false;
+    });
+    this.eventEmitter.on('enable-aim', () => {
+      this.stage.aim.visible = true;
     });
 
     this.stage.eventMode = 'static';
@@ -447,7 +445,7 @@ class Game {
   }
 
   scaleToWindow() {
-    this.renderer.resize(window.innerWidth, window.innerHeight);
+    this.renderer.resize(CANVAS_WIDTH, CANVAS_HEIGHT);
     this.stage.scaleToWindow();
   }
 

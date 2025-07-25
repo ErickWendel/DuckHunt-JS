@@ -1,18 +1,6 @@
 import Events from "./events";
 import { buildLayout } from "./layout";
 
-// ======== Web Worker ========
-
-/**
- * Cria um Web Worker a partir de um arquivo ESM via fetch.
- */
-export async function createAIWorkerFromURL(path = 'worker.js') {
-    const response = await fetch(path);
-    const code = await response.text();
-    const blob = new Blob([code], { type: 'application/javascript' });
-    const url = URL.createObjectURL(blob);
-    return new Worker(url, { type: 'module' });
-}
 
 // ======== Screen Capture via getDisplayMedia + ImageCapture ========
 
@@ -94,11 +82,11 @@ function setupEventHandlers({ worker }) {
 
     Events.onStartCapture(async () => {
         worker.postMessage({ type: 'clean-database' });
-        Events.onShoot(async (data) => {
+        _fnHandler = Events.onShoot(async (data) => {
             const { x, y } = data;
             console.log(`🖱️ Click at: (${x}, ${y})`)
             const imageData = await takeScreenshotOfCanvasArea();
-
+            if (!imageData) { return console.error('Failed to capture image data'); }
             worker.postMessage({
                 type: 'train-example',
                 buffer: imageData.data.buffer,
@@ -110,30 +98,12 @@ function setupEventHandlers({ worker }) {
 
         });
 
-
-        // _fnHandler = async (e) => {
-        //     const rect = webglCanvas.getBoundingClientRect();
-        //     const scaleX = webglCanvas.width / rect.width;
-        //     const scaleY = webglCanvas.height / rect.height;
-
-        //     const clickX = Math.floor((e.clientX - rect.left) * scaleX);
-        //     const clickY = Math.floor((e.clientY - rect.top) * scaleY);
-
-        //     console.log('🖱️ Click at:', clickX, clickY);
-
-
-
-        // };
-
-        // webglCanvas.addEventListener('click', _fnHandler);
-
         await startScreenCapture();
     });
 
     Events.onStopCapture(() => {
-        // if (_fnHandler) {
-        //     getCanvas().removeEventListener('click', _fnHandler);
-        // }
+        document.removeEventListener('shoot', _fnHandler);
+        _fnHandler = null;
         stopScreenCapture()
         console.log('🟢 Screen capture stopped.');
     });
@@ -214,7 +184,8 @@ function handleWorkerMessages(worker, previewCtx) {
  */
 export default async function main() {
     const container = buildLayout();
-    const worker = await createAIWorkerFromURL('./worker.js');
+    const worker = new Worker(new URL('./worker.js', import.meta.url));
+
 
     const previewCanvas = document.querySelector('#previewCanvas');
     previewCanvas.width = 64;
