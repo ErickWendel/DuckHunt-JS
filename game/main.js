@@ -1,32 +1,27 @@
 import Game from './src/modules/Game';
-import Socket from './src/modules/Socket';
+import main from './machine-learning/main';
+
 import Event from 'events';
+import Events from './machine-learning/events';
 
-const SERVER_URL = 'https://192.168.68.107:3000';
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', async function () {
   const eventEmitter = new Event();
-  Socket.connect({
-    url: SERVER_URL,
+  const container = await main()
+  eventEmitter.on('user-shoot', (data) => {
+    Events.dispatchOnShoot(data);
+  });
+
+  Events.onShoot((data) => {
+    eventEmitter.emit('shoot', data);
+  });
+
+  const game = new Game({
     eventEmitter,
+    container,
+    spritesheet: 'sprites.json'
   });
-  eventEmitter.on('connection', ({
-    id
-  }) => {
-    const link = document.getElementById('joystick-link');
-    if (!link) return;
-    link.setAttribute('href', `${SERVER_URL}?id=${id}`);
-  });
+  game.load();
 
-  // once something is received, initializes the game
-  eventEmitter.once('move-aim', () => {
-    document.getElementById('intro').remove();
-    const game = new Game({
-      eventEmitter,
-      spritesheet: 'sprites.json'
-    });
-    game.load();
-
-  });
 
 }, false);

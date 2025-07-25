@@ -18,7 +18,7 @@ class Aim extends extras.AnimatedSprite {
 
     this.setSize(DEFAULT_SIZE, DEFAULT_SIZE);
     this.move(DEFAULT_POSITION, DEFAULT_POSITION);
-    this.visible = false;
+    this.visible = true;
   }
 
   setSize(width, height) {
@@ -29,9 +29,9 @@ class Aim extends extras.AnimatedSprite {
   setPosition(x, y) {
     this.position.set(x, y);
 
-    if (this.visible) {
-      this.visible = false;
-    }
+    // if (this.visible) {
+    //   this.visible = false;
+    // }
   }
 
   normalizePosition(x, y) {
@@ -51,9 +51,9 @@ class Aim extends extras.AnimatedSprite {
 
     this.position.set(data.x, data.y);
 
-    if (!this.visible) {
-      this.visible = true;
-    }
+    // if (!this.visible) {
+    //   this.visible = true;
+    // }
   }
 
   reset() {

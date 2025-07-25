@@ -31,8 +31,24 @@ class Game {
   constructor(opts) {
     this.spritesheet = opts.spritesheet;
     this.loader = loader;
-    this.renderer = autoDetectRenderer(window.innerWidth, window.innerHeight, {
-      backgroundColor: BLUE_SKY_COLOR
+    const CANVAS_WIDTH = window.innerWidth * 0.7;
+    const CANVAS_HEIGHT = window.innerHeight;
+
+    this.renderer = autoDetectRenderer(
+
+      {
+        width: CANVAS_WIDTH,
+        height: CANVAS_HEIGHT,
+        backgroundColor: BLUE_SKY_COLOR,
+        resolution: window.devicePixelRatio || 1,
+        autoDensity: true,
+
+      });
+
+    Object.assign(this.renderer.view.style, {
+      width: `${CANVAS_WIDTH}px`,  // 👈 use same physical size
+      height: `${CANVAS_HEIGHT}px`,
+      display: 'block',
     });
     this.levelIndex = 0;
     this.maxScore = 0;
@@ -45,6 +61,8 @@ class Game {
     this.quackingSoundId = null;
     this.levels = levels.normal;
     this.eventEmitter = opts.eventEmitter;
+    this.container = opts.container
+
     return this;
   }
 
@@ -253,7 +271,7 @@ class Game {
   }
 
   onLoad() {
-    document.body.appendChild(this.renderer.view);
+    this.container.appendChild(this.renderer.view);
 
     this.stage = new Stage({
       spritesheet: this.spritesheet
@@ -316,11 +334,33 @@ class Game {
     });
     this.stage.hud.levelCreatorLink = 'level creator (c)';
   }
+  _onShoot(global) {
+    // debugger
+    // Convert PIXI global screen coordinates to game coordinates
+    const x = global.x / this.stage.scale.x;
+    const y = global.y / this.stage.scale.y;
+
+    console.log('✅ Adjusted Game Click:', x, y);
+
+    this.stage.aim.setPosition(x, y);
+    const position = this.stage.aim.getGlobalPosition();
+
+    // this.handleClick({
+    //   data: {
+    //     global,
+    //   }
+    // });
+  }
 
   bindEvents() {
     window.addEventListener('resize', this.scaleToWindow.bind(this));
+    this.eventEmitter.on('shoot', this._onShoot.bind(this));
+    this.stage.mousedown = this.stage.touchstart = (event) => {
+      // this._onShoot(event.data.global);
+      this.eventEmitter.emit('user-shoot', event.data.global);
+    };
 
-    this.stage.mousedown = this.stage.touchstart = this.handleClick.bind(this);
+    // this.stage.mousedown = this.stage.touchstart = this.handleClick.bind(this);
 
     document.addEventListener('keypress', (event) => {
       event.stopImmediatePropagation();
@@ -387,7 +427,7 @@ class Game {
   }
 
   removeActiveSound(soundId) {
-    _remove(this.activeSounds, function(item) {
+    _remove(this.activeSounds, function (item) {
       return item === soundId;
     });
   }
@@ -613,24 +653,15 @@ class Game {
     requestAnimationFrame(this.animate.bind(this));
   }
   registerAimEvents() {
-    this.eventEmitter.on('move-aim', (data) => {
-      this.stage.aim.move(data.x, data.y);
-    });
+    // this.eventEmitter.on('move-aim', (data) => {
+    //   this.stage.aim.move(data.x, data.y);
+    // });
 
     this.eventEmitter.on('end', () => {
       this.stage.aim.reset();
     });
 
-    this.eventEmitter.on('shoot', (data) => {
-      this.stage.aim.move(data.x, data.y);
-      const position = this.stage.aim.getGlobalPosition();
 
-      this.handleClick({
-        data: {
-          global: position,
-        }
-      });
-    });
   }
 }
 
