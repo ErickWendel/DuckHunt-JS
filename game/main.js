@@ -1,3 +1,6 @@
+window.Buffer = require('buffer').Buffer;
+window.process = require('process/browser');
+
 import Game from './src/modules/Game';
 import main from './machine-learning/main';
 
