@@ -18,7 +18,8 @@ const BOTTOM_LINK_STYLE = {
   align: 'left',
   fill: 'white'
 };
-
+const CANVAS_WIDTH = window.innerWidth * 0.7;
+const CANVAS_HEIGHT = window.innerHeight;
 class Game {
   /**
    * Game Constructor
@@ -41,8 +42,7 @@ class Game {
     this.eventEmitter = opts.eventEmitter;
     this.container = opts.container;
 
-    const CANVAS_WIDTH = window.innerWidth * 0.7;
-    const CANVAS_HEIGHT = window.innerHeight;
+
 
     this.app = new Application();
     this.app.init({
@@ -51,15 +51,14 @@ class Game {
       background: BLUE_SKY_COLOR,
       resolution: window.devicePixelRatio || 1,
       autoDensity: true,
-      resizeTo: undefined // keep canvas size fixed
+      resizeTo: undefined
     }).then(() => {
-      Object.assign(this.app.canvas.style, {
-        width: `${CANVAS_WIDTH}px`,
-        height: `${CANVAS_HEIGHT}px`,
-        display: 'block',
-      });
+
 
       this.container.appendChild(this.app.canvas);
+
+
+
     });
 
     return this;
@@ -264,10 +263,6 @@ class Game {
     }
   }
 
-
-
-
-
   async load() {
     this.textures = (await Assets.load(this.spritesheet)).textures;
     this.onLoad();
@@ -288,6 +283,12 @@ class Game {
     this.startLevel();
     this.registerAimEvents();
     this.animate();
+
+    Object.assign(this.app.canvas.style, {
+      width: `${CANVAS_WIDTH}px`,
+      height: `${CANVAS_HEIGHT}px`,
+      display: 'block',
+    });
   }
 
   addFullscreenLink() {
