@@ -332,7 +332,6 @@ class Game {
     this.stage.hud.levelCreatorLink = 'level creator (c)';
   }
   _onShoot(global) {
-    // debugger
     // Convert PIXI global screen coordinates to game coordinates
     const x = global.x / this.stage.scale.x;
     const y = global.y / this.stage.scale.y;

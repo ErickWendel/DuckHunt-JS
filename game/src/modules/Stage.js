@@ -146,7 +146,7 @@ class Stage extends Container {
   }
 
   shotsFired(clickPoint, radius) {
-    this.flashScreen.visible = true;
+    // this.flashScreen.visible = true; // TODO: uncomment to flash screen
     _delay(() => { this.flashScreen.visible = false; }, FLASH_MS);
 
     let ducksShot = 0;

@@ -13,6 +13,24 @@ export default class Events {
         });
     }
 
+    static onTrainModel(callback) {
+        return document.addEventListener('train-model', (event) => {
+            callback(event.detail);
+        });
+    }
+    static dispatchTrainingConfig(data) {
+        const event = new CustomEvent('training-config', {
+            detail: data
+        });
+        return document.dispatchEvent(event);
+    }
+
+    static onTrainingConfig(callback) {
+        return document.addEventListener('training-config', (event) => {
+            callback(event.detail);
+        });
+    }
+
     static dispatchStopCapture() {
         return document.dispatchEvent(new CustomEvent('stop-capture'));
     }
@@ -28,12 +46,14 @@ export default class Events {
     static onStartCapture(callback) {
         return document.addEventListener('start-capture', e => callback(e.detail));
     }
+
     static dispatchTrainingComplete(data) {
         const event = new CustomEvent('training-complete', {
             detail: data
         });
         return document.dispatchEvent(event);
     }
+
     static onShoot(callback) {
         return document.addEventListener('shoot', (event) => {
             callback(event.detail);

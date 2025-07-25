@@ -79,16 +79,19 @@ export async function takeScreenshotOfCanvasArea() {
 function setupEventHandlers({ worker }) {
     let _intervalId = 0;
     let _fnHandler = null;
+    let _trainingType = null;
 
     Events.onStartCapture(async () => {
-        worker.postMessage({ type: 'clean-database' });
         _fnHandler = Events.onShoot(async (data) => {
+            if (!_trainingType) return
+
+
             const { x, y } = data;
             console.log(`🖱️ Click at: (${x}, ${y})`)
             const imageData = await takeScreenshotOfCanvasArea();
             if (!imageData) { return console.error('Failed to capture image data'); }
             worker.postMessage({
-                type: 'train-example',
+                type: _trainingType,
                 buffer: imageData.data.buffer,
                 width: imageData.width,
                 height: imageData.height,
@@ -112,8 +115,15 @@ function setupEventHandlers({ worker }) {
         worker.postMessage({ type: 'train-model' });
     });
     let isRunning = false;
+    Events.onTrainingConfig((type) => {
+        _trainingType = type;
+        if (_trainingType === 'bad-example')
+            worker.postMessage({ type: 'clean-database' });
+        console.log(`Training config set to: ${type}`);
+    });
 
     Events.onRunModel(async () => {
+
         if (isRunning) {
             console.log('⏹️ AI stopped.');
             clearInterval(_intervalId);

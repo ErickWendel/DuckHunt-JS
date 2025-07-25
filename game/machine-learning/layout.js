@@ -1,7 +1,6 @@
 import Events from "./events";
 
 export function buildLayout() {
-    // Main layout
     const container = document.createElement('div');
     Object.assign(container.style, {
         display: 'flex',
@@ -12,7 +11,6 @@ export function buildLayout() {
         margin: 0,
     });
 
-    // Left side: game view
     const gameWrapper = document.createElement('div');
     gameWrapper.id = 'gameWrapper';
     Object.assign(gameWrapper.style, {
@@ -21,7 +19,6 @@ export function buildLayout() {
         position: 'relative',
     });
 
-    // Right side: controls panel
     const controls = document.createElement('div');
     controls.id = 'controls';
     Object.assign(controls.style, {
@@ -36,90 +33,133 @@ export function buildLayout() {
         overflowY: 'auto',
     });
 
-    // Button row (horizontal layout)
-    const buttonsRow = document.createElement('div');
-    Object.assign(buttonsRow.style, {
-        display: 'flex',
-        flexDirection: 'row',
-        gap: '15px',
-    });
-
-    // Buttons
-    const captureBtn = document.createElement('button');
-    captureBtn.innerText = '📹 Capture';
-
-
-
-    const trainBtn = document.createElement('button');
-    trainBtn.innerText = '🧠 Train';
-
-
-    const runBtn = document.createElement('button');
-    runBtn.innerText = '▶️ Run AI';
-
-    [captureBtn, trainBtn, runBtn].forEach(btn =>
+    const createButton = (label) => {
+        const btn = document.createElement('button');
+        btn.innerText = label;
         Object.assign(btn.style, {
             fontSize: '1.2rem',
-            padding: '10px 6px',
+            padding: '10px 12px',
             cursor: 'pointer',
-        })
-    );
+        });
+        return btn;
+    };
 
-    buttonsRow.append(captureBtn, trainBtn, runBtn);
-    controls.append(buttonsRow);
-    container.append(gameWrapper, controls);
-    document.body.appendChild(container);
+    const captureBtn = createButton('📹 Capture');
+    const trainBadBtn = createButton('❌ Train Bad');
+    const trainGoodBtn = createButton('✅ Train Good');
+    const trainModelBtn = createButton('🧠 Train Model');
+    const runBtn = createButton('▶️ Run AI');
+
+    // Disable bad/good training initially
+    trainBadBtn.disabled = true;
+    trainGoodBtn.disabled = true;
+    trainBadBtn.style.opacity = '0.6';
+    trainGoodBtn.style.opacity = '0.6';
+
+    // Track selection
+    const resetTrainingSelection = () => {
+        trainBadBtn.style.border = '';
+        trainGoodBtn.style.border = '';
+    };
+
+    // Row 1: capture + train examples
+    const row1 = document.createElement('div');
+    Object.assign(row1.style, {
+        display: 'flex',
+        flexDirection: 'row',
+        gap: '10px',
+        flexWrap: 'wrap',
+    });
+    row1.append(captureBtn, trainBadBtn, trainGoodBtn);
+
+    // Row 2: train model + run ai
+    const row2 = document.createElement('div');
+    Object.assign(row2.style, {
+        display: 'flex',
+        flexDirection: 'row',
+        gap: '10px',
+        flexWrap: 'wrap',
+    });
+    row2.append(trainModelBtn, runBtn);
+
+    controls.append(row1, row2);
 
     const previewCanvas = document.createElement('canvas');
     previewCanvas.id = 'previewCanvas';
     previewCanvas.width = 64;
     previewCanvas.height = 64;
-    previewCanvas.style.border = '1px solid #333';
-    previewCanvas.style.imageRendering = 'pixelated';
-
+    Object.assign(previewCanvas.style, {
+        border: '1px solid #333',
+        imageRendering: 'pixelated',
+    });
     controls.append(previewCanvas);
 
-    // Hook events
-    const toggleCaptureText = () => {
-        captureBtn.innerText = captureBtn.innerText === '📹 Capture' ? '🛑 Stop Capture' : '📹 Capture';
-    }
-
-    const toggleRunText = () => {
-        runBtn.innerText = runBtn.innerText === '▶️ Run AI' ? '⏹️ Stop AI' : '▶️ Run AI';
-    }
+    container.append(gameWrapper, controls);
+    document.body.appendChild(container);
 
     let isCapturing = false;
     let isRunning = false;
+
+    const toggleCaptureText = () => {
+        captureBtn.innerText = captureBtn.innerText === '📹 Capture' ? '🛑 Stop Capture' : '📹 Capture';
+    };
+    const toggleRunText = () => {
+        runBtn.innerText = runBtn.innerText === '▶️ Run AI' ? '⏹️ Stop AI' : '▶️ Run AI';
+    };
+
     captureBtn.addEventListener('click', () => {
         toggleCaptureText();
+        isCapturing = !isCapturing;
+
         if (isCapturing) {
+            Events.dispatchStartCapture();
+            console.log('🟢 Screen capture started.');
+            trainBadBtn.disabled = false;
+            trainGoodBtn.disabled = false;
+            trainBadBtn.style.opacity = '1';
+            trainGoodBtn.style.opacity = '1';
+        } else {
             Events.dispatchStopCapture();
             console.log('🔴 Screen capture stopped.');
-            isCapturing = false;
-            return
+            trainBadBtn.disabled = true;
+            trainGoodBtn.disabled = true;
+            trainBadBtn.style.opacity = '0.6';
+            trainGoodBtn.style.opacity = '0.6';
+            resetTrainingSelection();
         }
-        Events.dispatchStartCapture();
-        isCapturing = true;
-        console.log('🟢 Screen capture started.');
     });
 
-    trainBtn.addEventListener('click', () => {
-        console.log('🧠 Training...');
+    trainBadBtn.addEventListener('click', () => {
+        if (trainBadBtn.disabled) return;
+        Events.dispatchTrainingConfig('bad-example');
+        resetTrainingSelection();
+        trainBadBtn.style.border = '3px solid red';
+        console.log('❌ Training BAD example...');
+    });
+
+    trainGoodBtn.addEventListener('click', () => {
+        if (trainGoodBtn.disabled) return;
+        Events.dispatchTrainingConfig('good-example');
+        resetTrainingSelection();
+        trainGoodBtn.style.border = '3px solid green';
+        console.log('✅ Training GOOD example...');
+    });
+
+    trainModelBtn.addEventListener('click', () => {
         Events.dispatchTrainModel();
+        console.log('🧠 Training model...');
     });
 
     runBtn.addEventListener('click', () => {
-        console.log('▶️ Running AI...');
         toggleRunText();
+        isRunning = !isRunning;
         if (isRunning) {
+            Events.dispatchRunModel();
+            console.log('▶️ Running AI...');
+        } else {
             Events.dispatchStopCapture();
-            isRunning = false;
             console.log('⏹️ AI stopped.');
-            return;
         }
-
-        isRunning = true;
-        Events.dispatchRunModel();
     });
 
     return gameWrapper;
