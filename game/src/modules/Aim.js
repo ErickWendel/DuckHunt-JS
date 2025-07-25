@@ -1,18 +1,12 @@
-import {
-  extras,
-  loader
-} from 'pixi.js';
+import { Sprite } from 'pixi.js';
 
 const DEFAULT_SIZE = 40;
 const DEFAULT_POSITION = 350;
-class Aim extends extras.AnimatedSprite {
 
-  constructor({
-    spritesheet,
-    maxX,
-    maxY
-  }) {
-    super([loader.resources[spritesheet].textures['aim/0.png']]);
+class Aim extends Sprite {
+  constructor({ maxX, maxY, textures }) {
+    super(textures['aim/0.png']);
+
     this.maxX = maxX;
     this.maxY = maxY;
 
@@ -21,6 +15,9 @@ class Aim extends extras.AnimatedSprite {
     this.visible = true;
   }
 
+  move(x, y) {
+    this.position.set(x, y);
+  }
   setSize(width, height) {
     this.width = width;
     this.height = height;

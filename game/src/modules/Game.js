@@ -1,7 +1,5 @@
-import {
-  loader,
-  autoDetectRenderer
-} from 'pixi.js';
+import { Application, Assets } from 'pixi.js';
+
 import {
   remove as _remove
 } from 'lodash/array';
@@ -25,31 +23,11 @@ class Game {
   /**
    * Game Constructor
    * @param opts
-   * @param {String} opts.spritesheet Path to the spritesheet file that PIXI's loader should load
+   * @param {String} opts.spritesheet Path to the spritesheet file that PIXI'sLoader should load
    * @returns {Game}
    */
   constructor(opts) {
     this.spritesheet = opts.spritesheet;
-    this.loader = loader;
-    const CANVAS_WIDTH = window.innerWidth * 0.7;
-    const CANVAS_HEIGHT = window.innerHeight;
-
-    this.renderer = autoDetectRenderer(
-
-      {
-        width: CANVAS_WIDTH,
-        height: CANVAS_HEIGHT,
-        backgroundColor: BLUE_SKY_COLOR,
-        resolution: window.devicePixelRatio || 1,
-        autoDensity: true,
-
-      });
-
-    Object.assign(this.renderer.view.style, {
-      width: `${CANVAS_WIDTH}px`,  // 👈 use same physical size
-      height: `${CANVAS_HEIGHT}px`,
-      display: 'block',
-    });
     this.levelIndex = 0;
     this.maxScore = 0;
     this.timePaused = 0;
@@ -61,11 +39,35 @@ class Game {
     this.quackingSoundId = null;
     this.levels = levels.normal;
     this.eventEmitter = opts.eventEmitter;
-    this.container = opts.container
+    this.container = opts.container;
+
+    const CANVAS_WIDTH = window.innerWidth * 0.7;
+    const CANVAS_HEIGHT = window.innerHeight;
+
+    this.app = new Application();
+    this.app.init({
+      width: CANVAS_WIDTH,
+      height: CANVAS_HEIGHT,
+      background: BLUE_SKY_COLOR,
+      resolution: window.devicePixelRatio || 1,
+      autoDensity: true,
+      resizeTo: undefined // keep canvas size fixed
+    }).then(() => {
+      Object.assign(this.app.canvas.style, {
+        width: `${CANVAS_WIDTH}px`,
+        height: `${CANVAS_HEIGHT}px`,
+        display: 'block',
+      });
+
+      this.container.appendChild(this.app.canvas);
+    });
 
     return this;
   }
 
+  get renderer() {
+    return this.app.renderer;
+  }
   get ducksMissed() {
     return this.ducksMissedVal ? this.ducksMissedVal : 0;
   }
@@ -259,23 +261,23 @@ class Game {
           location: Stage.gameStatusBoxLocation()
         });
       }
-
-      this.stage.hud.gameStatus = val;
     }
   }
 
-  load() {
-    this.loader
-      .add(this.spritesheet)
-      .load(this.onLoad.bind(this));
+
+
+
+
+  async load() {
+    this.textures = (await Assets.load(this.spritesheet)).textures;
+    this.onLoad();
   }
 
   onLoad() {
-    this.container.appendChild(this.renderer.view);
-
     this.stage = new Stage({
-      spritesheet: this.spritesheet
+      textures: this.textures
     });
+    this.app.stage.addChild(this.stage);
 
     this.scaleToWindow();
     this.addLinkToLevelCreator();
@@ -284,8 +286,8 @@ class Game {
     this.addFullscreenLink();
     this.bindEvents();
     this.startLevel();
-    this.animate();
     this.registerAimEvents();
+    this.animate();
   }
 
   addFullscreenLink() {
@@ -345,22 +347,27 @@ class Game {
     this.stage.aim.setPosition(x, y);
     const position = this.stage.aim.getGlobalPosition();
 
-    // this.handleClick({
-    //   data: {
-    //     global,
-    //   }
-    // });
+    this.handleClick({
+      data: {
+        global,
+      }
+    });
   }
 
   bindEvents() {
     window.addEventListener('resize', this.scaleToWindow.bind(this));
     this.eventEmitter.on('shoot', this._onShoot.bind(this));
-    this.stage.mousedown = this.stage.touchstart = (event) => {
-      // this._onShoot(event.data.global);
-      this.eventEmitter.emit('user-shoot', event.data.global);
-    };
+    // this.stage.mousedown = this.stage.touchstart = (event) => {
+    //   // this._onShoot(event.data.global);
+    //   this.eventEmitter.emit('user-shoot', event.data.global);
+    // };
 
-    // this.stage.mousedown = this.stage.touchstart = this.handleClick.bind(this);
+    this.stage.on('pointerdown', (e) => {
+      this._onShoot(e);
+    });
+
+    this.stage.eventMode = 'static';
+    this.stage.hitArea = this.renderer.screen;
 
     document.addEventListener('keypress', (event) => {
       event.stopImmediatePropagation();
@@ -443,7 +450,7 @@ class Game {
     this.stage.scaleToWindow();
   }
 
-  startLevel() {
+  async startLevel() {
     if (levelCreator.urlContainsLevelData()) {
       this.level = levelCreator.parseLevelQueryString();
       this.levelIndex = this.levels.length - 1;
@@ -455,12 +462,15 @@ class Game {
     this.ducksShot = 0;
     this.ducksMissed = 0;
     this.wave = 0;
-
+    this.gameStatus = '';
     this.gameStatus = this.level.title;
-    this.stage.preLevelAnimation().then(() => {
-      this.gameStatus = '';
-      this.startWave();
-    });
+    this.gameStatus = '';
+    this.gameStatus = this.level.title;
+
+    await this.stage.preLevelAnimation()
+    this.gameStatus = '';
+    this.startWave();
+
   }
 
   startWave() {
@@ -480,7 +490,7 @@ class Game {
     sound.stop(this.quackingSoundId);
     if (this.stage.ducksAlive()) {
       this.ducksMissed += this.level.ducks - this.ducksShotThisWave;
-      this.renderer.backgroundColor = PINK_SKY_COLOR;
+      this.renderer.background.color = PINK_SKY_COLOR;
       this.stage.flyAway().then(this.goToNextWave.bind(this));
     } else {
       this.stage.cleanUpDucks();
@@ -489,7 +499,7 @@ class Game {
   }
 
   goToNextWave() {
-    this.renderer.backgroundColor = BLUE_SKY_COLOR;
+    this.renderer.background.color = BLUE_SKY_COLOR;
     if (this.level.waves === this.wave) {
       this.endLevel();
     } else {
@@ -642,15 +652,14 @@ class Game {
   }
 
   animate() {
-    if (!this.paused) {
-      this.renderer.render(this.stage);
-
-      if (this.shouldWaveEnd()) {
-        this.endWave();
+    this.app.ticker.add(() => {
+      if (!this.paused) {
+        // Call your stage update logic (animations, etc.)
+        if (this.shouldWaveEnd()) {
+          this.endWave();
+        }
       }
-    }
-
-    requestAnimationFrame(this.animate.bind(this));
+    });
   }
   registerAimEvents() {
     // this.eventEmitter.on('move-aim', (data) => {
