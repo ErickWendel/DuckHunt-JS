@@ -112,10 +112,8 @@ export function buildLayout() {
         console.log('▶️ Running AI...');
         toggleRunText();
         if (isRunning) {
-            clearInterval(id);
             Events.dispatchStopCapture();
             isRunning = false;
-            toggleRunText();
             console.log('⏹️ AI stopped.');
             return;
         }

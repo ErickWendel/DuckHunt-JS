@@ -126,6 +126,7 @@ function setupEventHandlers({ worker }) {
 
         _intervalId = setInterval(async () => {
             const imageData = await takeScreenshotOfCanvasArea();
+            if (!imageData) return;
             worker.postMessage({
                 type: 'predict',
                 buffer: imageData.data.buffer,
