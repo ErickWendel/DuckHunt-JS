@@ -251,9 +251,6 @@ class Game {
       width: CANVAS_WIDTH,
       height: CANVAS_HEIGHT,
       background: BLUE_SKY_COLOR,
-      resolution: window.devicePixelRatio || 1,
-      autoDensity: true,
-      resizeTo: undefined
     })
     this.container.appendChild(this.app.canvas);
 
@@ -483,7 +480,7 @@ class Game {
   }
 
   scaleToWindow() {
-    this.renderer.resize(CANVAS_WIDTH, CANVAS_HEIGHT);
+    this.renderer.resize(window.innerWidth, window.innerHeight);
     this.stage.scaleToWindow();
   }
 
