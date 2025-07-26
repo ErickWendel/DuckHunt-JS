@@ -45,22 +45,9 @@ export function buildLayout() {
     };
 
     const captureBtn = createButton('📹 Capture');
-    const trainBadBtn = createButton('❌ Train Bad');
-    const trainGoodBtn = createButton('✅ Train Good');
     const trainModelBtn = createButton('🧠 Train Model');
     const runBtn = createButton('▶️ Run AI');
 
-    // Disable bad/good training initially
-    trainBadBtn.disabled = true;
-    trainGoodBtn.disabled = true;
-    trainBadBtn.style.opacity = '0.6';
-    trainGoodBtn.style.opacity = '0.6';
-
-    // Track selection
-    const resetTrainingSelection = () => {
-        trainBadBtn.style.border = '';
-        trainGoodBtn.style.border = '';
-    };
 
     // Row 1: capture + train examples
     const row1 = document.createElement('div');
@@ -70,7 +57,7 @@ export function buildLayout() {
         gap: '10px',
         flexWrap: 'wrap',
     });
-    row1.append(captureBtn, trainBadBtn, trainGoodBtn);
+    row1.append(captureBtn);
 
     // Row 2: train model + run ai
     const row2 = document.createElement('div');
@@ -114,35 +101,11 @@ export function buildLayout() {
         if (isCapturing) {
             Events.dispatchStartCapture();
             console.log('🟢 Screen capture started.');
-            trainBadBtn.disabled = false;
-            trainGoodBtn.disabled = false;
-            trainBadBtn.style.opacity = '1';
-            trainGoodBtn.style.opacity = '1';
+
         } else {
             Events.dispatchStopCapture();
             console.log('🔴 Screen capture stopped.');
-            trainBadBtn.disabled = true;
-            trainGoodBtn.disabled = true;
-            trainBadBtn.style.opacity = '0.6';
-            trainGoodBtn.style.opacity = '0.6';
-            resetTrainingSelection();
         }
-    });
-
-    trainBadBtn.addEventListener('click', () => {
-        if (trainBadBtn.disabled) return;
-        Events.dispatchTrainingConfig('bad-example');
-        resetTrainingSelection();
-        trainBadBtn.style.border = '3px solid red';
-        console.log('❌ Training BAD example...');
-    });
-
-    trainGoodBtn.addEventListener('click', () => {
-        if (trainGoodBtn.disabled) return;
-        Events.dispatchTrainingConfig('good-example');
-        resetTrainingSelection();
-        trainGoodBtn.style.border = '3px solid green';
-        console.log('✅ Training GOOD example...');
     });
 
     trainModelBtn.addEventListener('click', () => {

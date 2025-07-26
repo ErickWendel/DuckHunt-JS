@@ -8,6 +8,7 @@ import Stage from './Stage';
 import sound from './Sound';
 import levelCreator from '../libs/levelCreator.js';
 import utils from '../libs/utils';
+import Events from '../../machine-learning/events.js';
 
 const BLUE_SKY_COLOR = 0x64b0ff;
 const PINK_SKY_COLOR = 0xfbb4d4;
@@ -351,6 +352,44 @@ class Game {
   bindEvents() {
     window.addEventListener('resize', this.scaleToWindow.bind(this));
     this.eventEmitter.on('shoot', this._onShoot.bind(this));
+    Events.onDuckMoved((data) => {
+      // this.stage.aim.move(data.x, data.y);
+      // this.stage.aim.visible = true;
+      // this.stage.aim.setPosition(data.x, data.y);
+      this.stage.aim.visible = false;
+
+      this._onShoot({
+        x: data.x,
+        y: data.y
+      });
+    })
+    let handler = null;
+    Events.onStartCapture(() => {
+      handler = setInterval(async () => {
+
+        const ducks = this.stage.ducks;
+        if (!ducks.length) return
+
+        const duck = ducks.find(i => i.alive && i.visible && i.parent)
+        if (!duck) return
+
+        const position = duck.parent.toGlobal(duck.position);
+        console.log(`Duck position updated: x = ${position.x}, y = ${position.y}`, duck.alive, duck.visible, duck.state);
+        Events.dispatchDuckMoved({
+          x: position.x,
+          y: position.y,
+        });
+
+        console.log('ducks', ducks)
+      }, 1000);
+    })
+
+    Events.onStopCapture(() => {
+      if (handler) {
+        clearInterval(handler);
+        handler = null;
+      }
+    });
 
     this.stage.on('pointerdown', (e) => {
       this._onShoot(e);

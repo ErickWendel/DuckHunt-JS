@@ -1,4 +1,16 @@
 export default class Events {
+    static dispatchDuckMoved(data = {}) {
+        const event = new CustomEvent('duck-moved', {
+            detail: data
+        });
+        return document.dispatchEvent(event);
+    }
+
+    static onDuckMoved(callback) {
+        return document.addEventListener('duck-moved', (event) => {
+            callback(event.detail);
+        });
+    }
 
     static dispatchTrainModel(data = {}) {
         const event = new CustomEvent('train-model', {
@@ -15,18 +27,6 @@ export default class Events {
 
     static onTrainModel(callback) {
         return document.addEventListener('train-model', (event) => {
-            callback(event.detail);
-        });
-    }
-    static dispatchTrainingConfig(data) {
-        const event = new CustomEvent('training-config', {
-            detail: data
-        });
-        return document.dispatchEvent(event);
-    }
-
-    static onTrainingConfig(callback) {
-        return document.addEventListener('training-config', (event) => {
             callback(event.detail);
         });
     }

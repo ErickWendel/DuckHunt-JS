@@ -10,6 +10,7 @@ let imageCapture;
  * Inicia a captura da tela.
  */
 export async function startScreenCapture() {
+    if (imageCapture) return
     const stream = await navigator.mediaDevices.getDisplayMedia({
         video: { cursor: "never" },
         audio: false
@@ -79,19 +80,19 @@ export async function takeScreenshotOfCanvasArea() {
 function setupEventHandlers({ worker }) {
     let _intervalId = 0;
     let _fnHandler = null;
-    let _trainingType = null;
 
     Events.onStartCapture(async () => {
-        _fnHandler = Events.onShoot(async (data) => {
-            if (!_trainingType) return
 
+        _fnHandler = Events.onDuckMoved(async (data) => {
+            if (!imageCapture) return
+            const { x, y, spriteId } = data;
+            console.log(`Duck position updated: x = ${x}, y = ${y}`, spriteId);
 
-            const { x, y } = data;
             console.log(`🖱️ Click at: (${x}, ${y})`)
             const imageData = await takeScreenshotOfCanvasArea();
             if (!imageData) { return console.error('Failed to capture image data'); }
             worker.postMessage({
-                type: _trainingType,
+                type: 'add-sample',
                 buffer: imageData.data.buffer,
                 width: imageData.width,
                 height: imageData.height,
@@ -101,7 +102,29 @@ function setupEventHandlers({ worker }) {
 
         });
 
+
+        // _fnHandler = Events.onShoot(async (data) => {
+        //     if (!_trainingType) return
+
+
+        //     const { x, y } = data;
+        //     console.log(`🖱️ Click at: (${x}, ${y})`)
+        //     const imageData = await takeScreenshotOfCanvasArea();
+        //     if (!imageData) { return console.error('Failed to capture image data'); }
+        //     worker.postMessage({
+        //         type: 'add-sample',
+        //         buffer: imageData.data.buffer,
+        //         width: imageData.width,
+        //         height: imageData.height,
+        //         clickX: x,
+        //         clickY: y
+        //     }, [imageData.data.buffer]);
+
+        // });
+
         await startScreenCapture();
+        worker.postMessage({ type: 'clean-database' });
+
     });
 
     Events.onStopCapture(() => {
@@ -115,12 +138,7 @@ function setupEventHandlers({ worker }) {
         worker.postMessage({ type: 'train-model' });
     });
     let isRunning = false;
-    Events.onTrainingConfig((type) => {
-        _trainingType = type;
-        if (_trainingType === 'bad-example')
-            worker.postMessage({ type: 'clean-database' });
-        console.log(`Training config set to: ${type}`);
-    });
+
 
     Events.onRunModel(async () => {
 
@@ -143,15 +161,6 @@ function setupEventHandlers({ worker }) {
                 width: imageData.width,
                 height: imageData.height
             }, [imageData.data.buffer]);
-
-            //     worker.postMessage({
-            //         type: 'train-example',
-            //         buffer: imageData.data.buffer,
-            //         width: imageData.width,
-            //         height: imageData.height,
-            //         clickX: 0,
-            //         clickY: 0
-            //     }, [imageData.data.buffer]);
 
         }, 1000 / 10); // 10 FPS
 

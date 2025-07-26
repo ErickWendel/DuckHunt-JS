@@ -25,12 +25,11 @@ function openDatabase() {
     });
 }
 
-async function saveSample(inputTensor, label, type = 'positive') {
+async function saveSample(inputTensor, label) {
     const flattened = Array.from(await inputTensor.data());
     const sample = {
         input: flattened,
         label,
-        type,
         timestamp: Date.now()
     };
 
@@ -42,6 +41,7 @@ async function saveSample(inputTensor, label, type = 'positive') {
         tx.onerror = () => reject(tx.error);
     });
 }
+
 
 function removeAllSamples() {
     return new Promise((resolve, reject) => {
@@ -123,13 +123,13 @@ async function tryLoadModel() {
     }
 }
 
-async function handleExample(type, buffer, width, height, clickX, clickY) {
+async function handleExample(buffer, width, height, clickX, clickY) {
     const imageData = new ImageData(new Uint8ClampedArray(buffer), width, height);
     const inputTensor = preprocessImage(imageData);
     sendPreview(inputTensor);
 
-    await saveSample(inputTensor, [clickX / width, clickY / height], type);
-    console.count(`📸 Added ${type} training sample`);
+    await saveSample(inputTensor, [clickX / width, clickY / height]);
+    console.count(`📸 Added training sample at (${clickX}, ${clickY})`);
 }
 
 async function handleTrainModel() {
@@ -149,11 +149,8 @@ async function handleTrainModel() {
         )
     );
 
-    const ys = tf.tensor2d(
-        allSamples.map(s =>
-            s.type === 'negative' ? [-1, -1] : s.label
-        )
-    );
+    const ys = tf.tensor2d(allSamples.map(s => s.label));
+
 
     const model = createModel();
 
@@ -179,8 +176,11 @@ async function handlePrediction(buffer, width, height) {
     sendPreview(inputTensor);
 
     const prediction = _model.predict(inputTensor.expandDims(0));
+    console.log('Prediction Raw:', await prediction.array());
+
     const [normX, normY] = await prediction.data();
-    const confidence = 1 - tf.losses.meanSquaredError([[0.5, 0.5]], prediction).dataSync()[0];
+    const mse = tf.losses.meanSquaredError([[0.5, 0.5]], prediction).dataSync()[0];
+    const confidence = 1 - mse;
 
     console.log(`🔮 Prediction: (${normX}, ${normY}), confidence: ${confidence}`);
 
@@ -205,12 +205,8 @@ self.onmessage = async ({ data }) => {
             console.log('🗑️ All samples removed');
             break;
 
-        case 'good-example':
-            await handleExample('positive', buffer, width, height, clickX, clickY);
-            break;
-
-        case 'bad-example':
-            await handleExample('negative', buffer, width, height, clickX, clickY);
+        case 'add-sample':
+            await handleExample(buffer, width, height, clickX, clickY);
             break;
 
         case 'train-model':
