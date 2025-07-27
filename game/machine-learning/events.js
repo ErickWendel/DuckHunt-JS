@@ -31,6 +31,15 @@ export default class Events {
         });
     }
 
+    static dispatchCapturePermission(data) {
+        return document.dispatchEvent(new CustomEvent('capture-permission', { detail: data }));
+    }
+
+    static onCapturePermission(callback) {
+        return document.addEventListener('capture-permission', e => callback(e.detail));
+    }
+
+
     static dispatchStopCapture() {
         return document.dispatchEvent(new CustomEvent('stop-capture'));
     }

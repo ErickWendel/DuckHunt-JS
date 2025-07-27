@@ -19,13 +19,13 @@ document.addEventListener('DOMContentLoaded', async function () {
     eventEmitter.emit('shoot', data);
   });
 
-  Events.onStartCapture(() => {
-    eventEmitter.emit('disable-aim');
-  })
-  Events.onStopCapture(() => {
+  // Events.onStartCapture(() => {
+  //   eventEmitter.emit('disable-aim');
+  // })
+  // Events.onStopCapture(() => {
 
-    eventEmitter.emit('enable-aim');
-  })
+  //   eventEmitter.emit('enable-aim');
+  // })
 
   Events.onRunModel(() => {
     // eventEmitter.emit('enable-aim')

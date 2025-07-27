@@ -333,6 +333,7 @@ class Game {
     // Convert PIXI global screen coordinates to game coordinates
     const x = global.x / this.stage.scale.x;
     const y = global.y / this.stage.scale.y;
+    // this.stage.aim.visible = false;
 
     console.log('✅ Adjusted Game Click:', x, y);
 
@@ -351,9 +352,9 @@ class Game {
     this.eventEmitter.on('shoot', this._onShoot.bind(this));
     Events.onDuckMoved((data) => {
       // this.stage.aim.move(data.x, data.y);
-      // this.stage.aim.visible = true;
+      this.stage.aim.visible = true;
       // this.stage.aim.setPosition(data.x, data.y);
-      this.stage.aim.visible = false;
+      // this.stage.aim.visible = false;
 
       this._onShoot({
         x: data.x,
@@ -361,7 +362,8 @@ class Game {
       });
     })
     let handler = null;
-    Events.onStartCapture(() => {
+    Events.onStartCapture((type) => {
+
       handler = setInterval(async () => {
 
         const ducks = this.stage.ducks;

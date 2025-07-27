@@ -99,9 +99,7 @@ export function buildLayout() {
         isCapturing = !isCapturing;
 
         if (isCapturing) {
-            Events.dispatchStartCapture();
-            console.log('🟢 Screen capture started.');
-
+            Events.dispatchCapturePermission();
         } else {
             Events.dispatchStopCapture();
             console.log('🔴 Screen capture stopped.');

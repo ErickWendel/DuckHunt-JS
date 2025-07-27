@@ -10,16 +10,39 @@ let imageCapture;
  * Inicia a captura da tela.
  */
 export async function startScreenCapture() {
-    if (imageCapture) return
-    const stream = await navigator.mediaDevices.getDisplayMedia({
-        video: { cursor: "never" },
-        audio: false
-    });
+    if (imageCapture) return Promise.resolve(); // Already running
 
-    const track = stream.getVideoTracks()[0];
-    imageCapture = new ImageCapture(track);
-    return stream
+    return new Promise(async (resolve, reject) => {
+        try {
+            const stream = await navigator.mediaDevices.getDisplayMedia({
+                video: { cursor: "never" },
+                audio: false
+            });
+
+            const track = stream.getVideoTracks()[0];
+
+            // Wait until the video track is "live" and ready
+            if (track.readyState === 'live') {
+                imageCapture = new ImageCapture(track);
+                resolve(); // ✅ Screen capture is ready
+            } else {
+                // Listen for 'unmute' which signals frames are flowing
+                track.addEventListener('unmute', () => {
+                    imageCapture = new ImageCapture(track);
+                    resolve(); // ✅ Screen capture is ready and active
+                }, { once: true });
+
+                // Optional: handle track end before it starts
+                track.addEventListener('ended', () => {
+                    reject(new Error('Screen capture was closed before it started'));
+                }, { once: true });
+            }
+        } catch (err) {
+            reject(err);
+        }
+    });
 }
+
 
 async function stopScreenCapture() {
     if (imageCapture) {
@@ -80,8 +103,12 @@ export async function takeScreenshotOfCanvasArea() {
 function setupEventHandlers({ worker }) {
     let _intervalId = 0;
     let _fnHandler = null;
-
-    Events.onStartCapture(async () => {
+    Events.onCapturePermission(async () => {
+        await startScreenCapture();
+        Events.dispatchStartCapture()
+        console.log('🟢 Screen capture started.');
+    })
+    Events.onStartCapture(async (type) => {
 
         _fnHandler = Events.onDuckMoved(async (data) => {
             if (!imageCapture) return
@@ -122,7 +149,7 @@ function setupEventHandlers({ worker }) {
 
         // });
 
-        await startScreenCapture();
+
         worker.postMessage({ type: 'clean-database' });
 
     });
@@ -162,7 +189,7 @@ function setupEventHandlers({ worker }) {
                 height: imageData.height
             }, [imageData.data.buffer]);
 
-        }, 1000 / 10); // 10 FPS
+        }, 500); // 2 FPS
 
     });
 }
