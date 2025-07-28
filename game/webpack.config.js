@@ -1,6 +1,7 @@
 'use strict';
 
 const path = require('path');
+const CopyWebpackPlugin = require('copy-webpack-plugin');
 
 module.exports = {
   mode: 'development',
@@ -55,6 +56,13 @@ module.exports = {
     type: 'filesystem'
   },
   plugins: [
-
+    new CopyWebpackPlugin({
+      patterns: [
+        {
+          from: path.resolve(__dirname, 'machine-learning/yolov5n_web_model'),
+          to: 'yolov5n_web_model' // this will be accessible at runtime
+        }
+      ]
+    }),
   ],
 };

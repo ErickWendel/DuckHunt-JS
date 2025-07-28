@@ -1,127 +1,62 @@
-import Events from "./events";
+// layout.js
+import * as PIXI from 'pixi.js';
 
-export function buildLayout() {
-    const container = document.createElement('div');
-    Object.assign(container.style, {
-        display: 'flex',
-        flexDirection: 'row',
-        width: '100vw',
-        height: '100vh',
-        overflow: 'hidden',
-        margin: 0,
+export function buildLayout(app) {
+    // Container for HUD
+    const hud = new PIXI.Container();
+    hud.y = 16;
+    hud.zIndex = 1000;
+
+    // Score Text
+    const scoreText = new PIXI.Text('Score: 0', {
+        fontFamily: 'monospace',
+        fontSize: 24,
+        fill: 0xffffff,
+        stroke: 0x000000,
+        strokeThickness: 4,
+    });
+    hud.addChild(scoreText);
+
+    // Predictions Text
+    const predictionsText = new PIXI.Text('Predictions:', {
+        fontFamily: 'monospace',
+        fontSize: 16,
+        fill: 0xfff666,
+        stroke: 0x333300,
+        strokeThickness: 2,
+        wordWrap: true,
+        wordWrapWidth: 420,
+    });
+    predictionsText.y = 36;
+    hud.addChild(predictionsText);
+
+    // Add HUD to stage, ensure it's always on top
+    app.stage.sortableChildren = true;
+    app.stage.addChild(hud);
+
+    // Function to reposition HUD at top-right
+    function positionHUD() {
+        // Margin from the right
+        const margin = 16;
+        // Find HUD width (in case text wraps/grows)
+        const hudWidth = Math.max(scoreText.width, predictionsText.width);
+        hud.x = app.renderer.width - hudWidth - margin;
+    }
+
+    // Utility for updating HUD
+    function updateHUD(data) {
+        scoreText.text = `Score: ${data.score}`;
+        predictionsText.text = `Predictions: (${Math.round(data.x)}, ${Math.round(data.y)})`;
+        positionHUD();
+    }
+
+    // Position HUD initially and on every resize
+    positionHUD();
+    window.addEventListener('resize', () => {
+        positionHUD();
     });
 
-    const gameWrapper = document.createElement('div');
-    gameWrapper.id = 'gameWrapper';
-    Object.assign(gameWrapper.style, {
-        flex: '0 0 70%',
-        background: '#111',
-        position: 'relative',
-    });
-
-    const controls = document.createElement('div');
-    controls.id = 'controls';
-    Object.assign(controls.style, {
-        flex: '0 0 30%',
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'flex-start',
-        alignItems: 'center',
-        gap: '20px',
-        padding: '30px',
-        background: 'rgba(255, 255, 255, 0.95)',
-        overflowY: 'auto',
-    });
-
-    const createButton = (label) => {
-        const btn = document.createElement('button');
-        btn.innerText = label;
-        Object.assign(btn.style, {
-            fontSize: '1.2rem',
-            padding: '10px 12px',
-            cursor: 'pointer',
-        });
-        return btn;
+    return {
+        updateHUD,
     };
-
-    const captureBtn = createButton('📹 Capture');
-    const trainModelBtn = createButton('🧠 Train Model');
-    const runBtn = createButton('▶️ Run AI');
-
-
-    // Row 1: capture + train examples
-    const row1 = document.createElement('div');
-    Object.assign(row1.style, {
-        display: 'flex',
-        flexDirection: 'row',
-        gap: '10px',
-        flexWrap: 'wrap',
-    });
-    row1.append(captureBtn);
-
-    // Row 2: train model + run ai
-    const row2 = document.createElement('div');
-    Object.assign(row2.style, {
-        display: 'flex',
-        flexDirection: 'row',
-        gap: '10px',
-        flexWrap: 'wrap',
-    });
-    row2.append(trainModelBtn, runBtn);
-
-    controls.append(row1, row2);
-
-    const previewCanvas = document.createElement('canvas');
-    previewCanvas.id = 'previewCanvas';
-    previewCanvas.width = 64;
-    previewCanvas.height = 64;
-    Object.assign(previewCanvas.style, {
-        border: '1px solid #333',
-        imageRendering: 'pixelated',
-    });
-    controls.append(previewCanvas);
-
-    container.append(gameWrapper, controls);
-    document.body.appendChild(container);
-
-    let isCapturing = false;
-    let isRunning = false;
-
-    const toggleCaptureText = () => {
-        captureBtn.innerText = captureBtn.innerText === '📹 Capture' ? '🛑 Stop Capture' : '📹 Capture';
-    };
-    const toggleRunText = () => {
-        runBtn.innerText = runBtn.innerText === '▶️ Run AI' ? '⏹️ Stop AI' : '▶️ Run AI';
-    };
-
-    captureBtn.addEventListener('click', () => {
-        toggleCaptureText();
-        isCapturing = !isCapturing;
-
-        if (isCapturing) {
-            Events.dispatchCapturePermission();
-        } else {
-            Events.dispatchStopCapture();
-            console.log('🔴 Screen capture stopped.');
-        }
-    });
-
-    trainModelBtn.addEventListener('click', () => {
-        Events.dispatchTrainModel();
-        console.log('🧠 Training model...');
-    });
-
-    runBtn.addEventListener('click', () => {
-        toggleRunText();
-        isRunning = !isRunning;
-        if (isRunning) {
-            Events.dispatchRunModel();
-            console.log('▶️ Running AI...');
-        } else {
-            Events.dispatchStopCapture();
-            console.log('⏹️ AI stopped.');
-        }
-    });
-
-    return gameWrapper;
 }

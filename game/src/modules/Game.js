@@ -8,7 +8,6 @@ import Stage from './Stage';
 import sound from './Sound';
 import levelCreator from '../libs/levelCreator.js';
 import utils from '../libs/utils';
-import Events from '../../machine-learning/events.js';
 
 const BLUE_SKY_COLOR = 0x64b0ff;
 const PINK_SKY_COLOR = 0xfbb4d4;
@@ -19,7 +18,7 @@ const BOTTOM_LINK_STYLE = {
   align: 'left',
   fill: 'white'
 };
-const CANVAS_WIDTH = window.innerWidth * 0.7;
+const CANVAS_WIDTH = window.innerWidth;
 const CANVAS_HEIGHT = window.innerHeight;
 class Game {
   /**
@@ -41,7 +40,6 @@ class Game {
     this.quackingSoundId = null;
     this.levels = levels.normal;
     this.eventEmitter = opts.eventEmitter;
-    this.container = opts.container;
 
     return this;
   }
@@ -252,7 +250,7 @@ class Game {
       height: CANVAS_HEIGHT,
       background: BLUE_SKY_COLOR,
     })
-    this.container.appendChild(this.app.canvas);
+    document.body.appendChild(this.app.canvas);
 
     this.textures = (await Assets.load(this.spritesheet)).textures;
     this.onLoad();
@@ -273,16 +271,9 @@ class Game {
     this.startLevel();
     this.registerAimEvents();
     this.animate();
-    this.addToolBox();
 
   }
-  addToolBox() {
-    Object.assign(this.app.canvas.style, {
-      width: `${CANVAS_WIDTH}px`,
-      height: `${CANVAS_HEIGHT}px`,
-      display: 'block',
-    });
-  }
+
   addFullscreenLink() {
     this.stage.hud.createTextBox('fullscreenLink', {
       style: BOTTOM_LINK_STYLE,
@@ -329,77 +320,17 @@ class Game {
     });
     this.stage.hud.levelCreatorLink = 'level creator (c)';
   }
-  _onShoot(global) {
-    // Convert PIXI global screen coordinates to game coordinates
-    const x = global.x / this.stage.scale.x;
-    const y = global.y / this.stage.scale.y;
-    // this.stage.aim.visible = false;
-
-    console.log('✅ Adjusted Game Click:', x, y);
-
-    this.stage.aim.setPosition(x, y);
-    const position = this.stage.aim.getGlobalPosition();
-
-    this.handleClick({
-      data: {
-        global,
-      }
-    });
-  }
 
   bindEvents() {
     window.addEventListener('resize', this.scaleToWindow.bind(this));
-    this.eventEmitter.on('shoot', this._onShoot.bind(this));
-    Events.onDuckMoved((data) => {
-      // this.stage.aim.move(data.x, data.y);
-      this.stage.aim.visible = true;
-      // this.stage.aim.setPosition(data.x, data.y);
-      // this.stage.aim.visible = false;
-
-      this._onShoot({
-        x: data.x,
-        y: data.y
-      });
-    })
-    let handler = null;
-    Events.onStartCapture((type) => {
-
-      handler = setInterval(async () => {
-
-        const ducks = this.stage.ducks;
-        if (!ducks.length) return
-
-        const duck = ducks.find(i => i.alive && i.visible && i.parent)
-        if (!duck) return
-
-        const position = duck.parent.toGlobal(duck.position);
-        console.log(`Duck position updated: x = ${position.x}, y = ${position.y}`, duck.alive, duck.visible, duck.state);
-        Events.dispatchDuckMoved({
-          x: position.x,
-          y: position.y,
-        });
-
-        console.log('ducks', ducks)
-      }, 1000);
-    })
-
-    Events.onStopCapture(() => {
-      if (handler) {
-        clearInterval(handler);
-        handler = null;
-      }
-    });
 
     this.stage.on('pointerdown', (e) => {
-      this._onShoot(e);
-      this.eventEmitter.emit('user-shoot', e.global);
-    });
 
-    this.eventEmitter.on('disable-aim', () => {
-      this.stage.aim.visible = false;
-    });
-    this.eventEmitter.on('enable-aim', () => {
-      this.stage.aim.visible = true;
+      this.handleClick({
+        data: {
+          global: e.global,
+        }
+      });
     });
 
     this.stage.eventMode = 'static';

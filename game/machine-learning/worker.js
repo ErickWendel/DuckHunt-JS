@@ -1,222 +1,101 @@
-importScripts('https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js');
+importScripts('https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest');
 
-let _model = null;
-const DB_NAME = 'AI-Training-DB';
-const STORE_NAME = 'samples';
-let db = null;
+const MODEL_PATH = `yolov5n_web_model/model.json`;
+const LABELS_PATH = `yolov5n_web_model/labels.json`;
+const INPUT_DIM = 640;
+const CLASS_THRESHOLD = 0.2;
 
-// === IndexedDB ===
-function openDatabase() {
-    return new Promise((resolve, reject) => {
-        const request = indexedDB.open(DB_NAME, 1);
+let model, labels;
 
-        request.onerror = () => reject(request.error);
-        request.onsuccess = () => {
-            db = request.result;
-            resolve();
-        };
+// === Load the model ===
+async function loadModel() {
+    await tf.ready();
+    labels = await (await fetch(LABELS_PATH)).json();
+    model = await tf.loadGraphModel(MODEL_PATH);
 
-        request.onupgradeneeded = () => {
-            const db = request.result;
-            if (!db.objectStoreNames.contains(STORE_NAME)) {
-                db.createObjectStore(STORE_NAME, { autoIncrement: true });
-            }
-        };
-    });
+    // Warm up
+    const dummy = tf.ones(model.inputs[0].shape);
+    await model.executeAsync(dummy);
+    tf.dispose(dummy);
+
+    postMessage({ type: 'model-loaded' });
 }
+loadModel();
 
-async function saveSample(inputTensor, label) {
-    const flattened = Array.from(await inputTensor.data());
-    const sample = {
-        input: flattened,
-        label,
-        timestamp: Date.now()
-    };
-
-    return new Promise((resolve, reject) => {
-        const tx = db.transaction(STORE_NAME, 'readwrite');
-        const store = tx.objectStore(STORE_NAME);
-        store.add(sample);
-        tx.oncomplete = resolve;
-        tx.onerror = () => reject(tx.error);
-    });
-}
-
-
-function removeAllSamples() {
-    return new Promise((resolve, reject) => {
-        const tx = db.transaction(STORE_NAME, 'readwrite');
-        const store = tx.objectStore(STORE_NAME);
-        const request = store.clear();
-        request.onsuccess = resolve;
-        request.onerror = () => reject(request.error);
-    });
-}
-
-function loadAllSamples() {
-    return new Promise((resolve, reject) => {
-        const tx = db.transaction(STORE_NAME, 'readonly');
-        const store = tx.objectStore(STORE_NAME);
-        const request = store.getAll();
-        request.onsuccess = () => resolve(request.result);
-        request.onerror = () => reject(request.error);
-    });
-}
 
 // === Preprocessing ===
 function preprocessImage(imageData) {
-    return tf.tidy(() => {
-        const tensor = tf.browser.fromPixels(imageData, 3); // RGB
-        const normalized = tensor.div(255).resizeBilinear([64, 64]);
-        return normalized; // shape: [64, 64, 3]
-    });
+    const img = tf.browser.fromPixels(imageData);
+    const [h, w] = img.shape;
+    const xRatio = w / INPUT_DIM;
+    const yRatio = h / INPUT_DIM;
+    const input = tf.image
+        .resizeBilinear(img, [INPUT_DIM, INPUT_DIM])
+        .div(255.0)
+        .expandDims(0);
+    return [input, xRatio, yRatio];
 }
 
-function sendPreview(tensor) {
-    tensor.data().then((rgbData) => {
-        const size = 64 * 64;
-        const rgba = new Uint8ClampedArray(size * 4);
+// === Prediction handler ===
+async function predict(buffer, width, height) {
+    if (!model) return;
 
-        for (let i = 0; i < size; i++) {
-            const r = rgbData[i * 3 + 0] * 255;
-            const g = rgbData[i * 3 + 1] * 255;
-            const b = rgbData[i * 3 + 2] * 255;
+    const imageData = new ImageData(new Uint8ClampedArray(buffer), width, height);
+    const [tensor, xRatio, yRatio] = preprocessImage(imageData);
 
-            rgba[i * 4 + 0] = r;
-            rgba[i * 4 + 1] = g;
-            rgba[i * 4 + 2] = b;
-            rgba[i * 4 + 3] = 255;
+    const output = await model.executeAsync(tensor);
+    tf.dispose(tensor);
+
+    const [boxes, scores, classes] = output.slice(0, 3);
+    const boxesData = boxes.dataSync();
+    const scoresData = scores.dataSync();
+    const classesData = classes.dataSync();
+    tf.dispose(output);
+
+    for (let i = 0; i < scoresData.length; i++) {
+        if (scoresData[i] < CLASS_THRESHOLD) continue;
+        const label = labels[classesData[i]];
+        if (label !== 'kite') continue; // <-- Only send predictions for 'kite'
+
+        let [x1, y1, x2, y2] = boxesData.slice(i * 4, (i + 1) * 4);
+
+        // If coordinates are normalized (0..1), convert to pixel units
+        if (x1 <= 1 && y1 <= 1 && x2 <= 1 && y2 <= 1) {
+            x1 *= width;
+            x2 *= width;
+            y1 *= height;
+            y2 *= height;
+        } else {
+            // Absolute mode: if you resized the input before inference, you might need xRatio/yRatio here
+            x1 *= xRatio;
+            x2 *= xRatio;
+            y1 *= yRatio;
+            y2 *= yRatio;
         }
+
+        const boxWidth = x2 - x1;
+        const boxHeight = y2 - y1;
+        const centerX = x1 + boxWidth / 2;
+        const centerY = y1 + boxHeight / 2;
 
         postMessage({
-            type: 'preview',
-            buffer: rgba.buffer,
-            width: 64,
-            height: 64
-        }, [rgba.buffer]);
-    });
-}
-
-// === Model Handling ===
-function createModel() {
-    const model = tf.sequential();
-
-    model.add(tf.layers.conv2d({ inputShape: [64, 64, 3], kernelSize: 3, filters: 16, activation: 'relu' }));
-    model.add(tf.layers.maxPooling2d({ poolSize: 2 }));
-    model.add(tf.layers.conv2d({ kernelSize: 3, filters: 32, activation: 'relu' }));
-    model.add(tf.layers.maxPooling2d({ poolSize: 2 }));
-    model.add(tf.layers.flatten());
-    model.add(tf.layers.dense({ units: 64, activation: 'relu' }));
-    model.add(tf.layers.dense({ units: 2, activation: 'sigmoid' })); // [x, y]
-
-    model.compile({ optimizer: 'adam', loss: 'meanSquaredError', metrics: ['mse'] });
-    return model;
-}
-
-async function tryLoadModel() {
-    try {
-        _model = await tf.loadLayersModel('indexeddb://duck-hunt-model');
-        postMessage({ type: 'model-loaded' });
-        console.log('✅ Model loaded from IndexedDB');
-    } catch (err) {
-        console.warn('❌ No saved model found:', err);
-    }
-}
-
-async function handleExample(buffer, width, height, clickX, clickY) {
-    const imageData = new ImageData(new Uint8ClampedArray(buffer), width, height);
-    const inputTensor = preprocessImage(imageData);
-    sendPreview(inputTensor);
-
-    await saveSample(inputTensor, [clickX / width, clickY / height]);
-    console.count(`📸 Added training sample at (${clickX}, ${clickY})`);
-}
-
-async function handleTrainModel() {
-    if (_model) await tf.io.removeModel('indexeddb://duck-hunt-model');
-    console.log('🗑️ Previous model removed');
-
-    const allSamples = await loadAllSamples();
-
-    if (!allSamples.length) {
-        console.warn('⚠️ No samples available to train.');
-        return;
+            type: 'prediction',
+            x: centerX,
+            y: centerY,
+            width: boxWidth,
+            height: boxHeight,
+            score: (scoresData[i] * 100).toFixed(2),
+            label
+        });
     }
 
-    const xs = tf.stack(
-        allSamples.map(s =>
-            tf.tensor(s.input, [64, 64, 3])
-        )
-    );
-
-    const ys = tf.tensor2d(allSamples.map(s => s.label));
-
-
-    const model = createModel();
-
-    await model.fit(xs, ys, {
-        epochs: 20,
-        batchSize: 4,
-        callbacks: {
-            onEpochEnd: (epoch, logs) => {
-                postMessage({ type: 'training-progress', epoch, loss: logs.loss });
-            }
-        }
-    });
-
-    await model.save('indexeddb://duck-hunt-model');
-    console.log('💾 Model saved!');
-    tryLoadModel();
-    postMessage({ type: 'model-trained' });
 }
 
-async function handlePrediction(buffer, width, height) {
-    const imageData = new ImageData(new Uint8ClampedArray(buffer), width, height);
-    const inputTensor = preprocessImage(imageData);
-    sendPreview(inputTensor);
-
-    const prediction = _model.predict(inputTensor.expandDims(0));
-    console.log('Prediction Raw:', await prediction.array());
-
-    const [normX, normY] = await prediction.data();
-    const mse = tf.losses.meanSquaredError([[0.5, 0.5]], prediction).dataSync()[0];
-    const confidence = 1 - mse;
-
-    console.log(`🔮 Prediction: (${normX}, ${normY}), confidence: ${confidence}`);
-
-    if (confidence >= 0.7) {
-        const x = Math.max(0, Math.min(1, normX)) * width;
-        const y = Math.max(0, Math.min(1, normY)) * height;
-
-        postMessage({ type: 'prediction', x, y });
-    }
-}
-
-// === Init ===
-openDatabase().then(() => console.log('📦 IndexedDB ready!')).catch(console.error);
-tryLoadModel();
-
+// === Message handling ===
 self.onmessage = async ({ data }) => {
-    const { type, buffer, width, height, clickX, clickY } = data;
-
-    switch (type) {
-        case 'clean-database':
-            await removeAllSamples();
-            console.log('🗑️ All samples removed');
-            break;
-
-        case 'add-sample':
-            await handleExample(buffer, width, height, clickX, clickY);
-            break;
-
-        case 'train-model':
-            await handleTrainModel();
-            break;
-
-        case 'predict':
-            await handlePrediction(buffer, width, height);
-            break;
+    if (data.type === 'predict') {
+        await predict(data.buffer, data.width, data.height);
     }
 };
 
-console.log('🧠 AI Worker initialized!');
+console.log('🧠 YOLOv5n Web Worker initialized');
