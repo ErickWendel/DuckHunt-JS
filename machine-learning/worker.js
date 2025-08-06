@@ -43,31 +43,27 @@ async function runInference(tensor) {
     tf.dispose(tensor);
     // Unpack the YOLO model outputs
     const [boxes, scores, classes] = output.slice(0, 3);
+    const [boxesData, scoresData, classesData] = await Promise.all([boxes.data(), scores.data(), classes.data()]);
+    output.forEach(t => t.dispose());
 
     return {
-        [Symbol.dispose]() {
-            output.forEach(t => t.dispose && t.dispose());
-        },
-        boxes,
-        scores,
-        classes,
+        boxes: boxesData,
+        scores: scoresData,
+        classes: classesData,
         output
     };
 }
 
 // Process model output and send results
 function* processPrediction({ boxes, scores, classes }, width, height) {
-    const boxesData = boxes.dataSync();
-    const scoresData = scores.dataSync();
-    const classesData = classes.dataSync();
 
-    for (let i = 0; i < scoresData.length; i++) {
-        if (scoresData[i] < CLASS_THRESHOLD) continue;
-        const label = _labels[classesData[i]];
+    for (let i = 0; i < scores.length; i++) {
+        if (scores[i] < CLASS_THRESHOLD) continue;
+        const label = _labels[classes[i]];
         if (label !== 'kite') continue;
 
         // Coordinates are normalized, map to image space
-        let [x1, y1, x2, y2] = boxesData.slice(i * 4, (i + 1) * 4);
+        let [x1, y1, x2, y2] = boxes.slice(i * 4, (i + 1) * 4);
         x1 *= width;
         x2 *= width;
         y1 *= height;
@@ -81,7 +77,7 @@ function* processPrediction({ boxes, scores, classes }, width, height) {
         yield {
             x: centerX,
             y: centerY,
-            score: (scoresData[i] * 100).toFixed(2),
+            score: (scores[i] * 100).toFixed(2),
         };
     }
 }
@@ -97,7 +93,7 @@ self.onmessage = async ({ data }) => {
     );
     const input = preprocessImage(imageData);
 
-    using inferenceResults = await runInference(input);
+    const inferenceResults = await runInference(input);
 
     for (const prediction of processPrediction(inferenceResults, data.width, data.height)) {
         postMessage({
