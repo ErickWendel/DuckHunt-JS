@@ -50,7 +50,6 @@ async function runInference(tensor) {
         boxes: boxesData,
         scores: scoresData,
         classes: classesData,
-        output
     };
 }
 
