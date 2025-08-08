@@ -1,49 +1,87 @@
+// Importa o runtime do TensorFlow.js dentro do Worker (executa no contexto de Web Worker)
 importScripts('https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest');
 
+// Caminhos do modelo e dos rótulos exportados para uso no browser
 const MODEL_PATH = `yolov5n_web_model/model.json`;
 const LABELS_PATH = `yolov5n_web_model/labels.json`;
+
+// Dimensão de entrada esperada pelo modelo YOLO (treinado para 640x640)
 const INPUT_DIM = 640;
-const CLASS_THRESHOLD = 0.2;
 
-let _model = null;
-let _labels = [];
+// Pontuação mínima (confiança) para considerar uma detecção como válida
+const CLASS_THRESHOLD = 0.4;
 
-// Load model and class labels
+let _model = null;   // Instância do modelo carregado
+let _labels = [];    // Lista de rótulos (labels) associados às classes do modelo
+
+/**
+ * Carrega o modelo e os rótulos:
+ * - tf.ready(): garante que o backend do TensorFlow.js está inicializado (CPU/WebGL/WASM)
+ * - tf.loadGraphModel(): carrega o modelo exportado no formato GraphModel
+ * - Warmup: executa uma inferência com dados fictícios para compilar kernels e
+ *   acelerar a primeira inferência real
+ */
 async function loadModelAndLabels() {
     await tf.ready();
+
+    // Carrega os rótulos de classes (JSON)
     _labels = await (await fetch(LABELS_PATH)).json();
+
+    // Carrega o modelo YOLOv5n no formato GraphModel
     _model = await tf.loadGraphModel(MODEL_PATH);
 
-    // Warm up model for faster first inference
+    // ---- Warmup ----
     const dummyInput = tf.ones(_model.inputs[0].shape);
     await _model.executeAsync(dummyInput);
     tf.dispose(dummyInput);
+    // ----------------
 
+    // Notifica a thread principal de que o modelo está pronto
     postMessage({ type: 'model-loaded' });
 }
+// Carrega assim que o Worker inicializa
 loadModelAndLabels();
 
-// Preprocess image for model input
-function preprocessImage(imageData) {
-    // tf.tidy() manages memory for temporary tensors
+/**
+ * Pré-processa a imagem para o formato aceito pelo YOLO:
+ * - tf.browser.fromPixels(): converte ImageBitmap/ImageData para tensor [H, W, 3]
+ * - tf.image.resizeBilinear(): redimensiona para [INPUT_DIM, INPUT_DIM]
+ * - .div(255): normaliza os valores para [0, 1]
+ * - .expandDims(0): adiciona dimensão batch [1, H, W, 3]
+ *
+ * Uso de tf.tidy():
+ * - Garante que tensores temporários serão descartados automaticamente,
+ *   evitando vazamento de memória.
+ */
+function preprocessImage(input) {
     return tf.tidy(() => {
-        const img = tf.browser.fromPixels(imageData);
-        // Resize and normalize for model input
+        const img = tf.browser.fromPixels(input);
         return tf.image
             .resizeBilinear(img, [INPUT_DIM, INPUT_DIM])
-            .div(255.0)
-            .expandDims(0); // Add batch dimension
+            .div(255)
+            .expandDims(0);
     });
 }
 
-// Run the YOLO model and return outputs
+/**
+ * Executa o modelo e retorna as saídas como arrays JS:
+ * - executeAsync(): executa o modelo de forma assíncrona
+ * - .data(): extrai os dados de cada tensor como TypedArray
+ * - Sempre liberar tensores com dispose() para evitar acúmulo de memória
+ */
 async function runInference(tensor) {
-    // executeAsync returns boxes, scores, and classes for each detection
     const output = await _model.executeAsync(tensor);
     tf.dispose(tensor);
-    // Unpack the YOLO model outputs
+
+    // Assume que as 3 primeiras saídas são: caixas (boxes), pontuações (scores) e classes
     const [boxes, scores, classes] = output.slice(0, 3);
-    const [boxesData, scoresData, classesData] = await Promise.all([boxes.data(), scores.data(), classes.data()]);
+
+    const [boxesData, scoresData, classesData] = await Promise.all([
+        boxes.data(),
+        scores.data(),
+        classes.data()
+    ]);
+
     output.forEach(t => t.dispose());
 
     return {
@@ -53,16 +91,25 @@ async function runInference(tensor) {
     };
 }
 
-// Process model output and send results
+/**
+ * Filtra e processa as predições:
+ * - Aplica o limiar de confiança (CLASS_THRESHOLD)
+ * - Filtra apenas a classe desejada (exemplo: 'kite')
+ * - Converte coordenadas normalizadas para pixels reais
+ * - Calcula o centro do bounding box
+ *
+ * Uso de generator (function*):
+ * - Permite enviar cada predição assim que processada, sem criar lista intermediária
+ */
 function* processPrediction({ boxes, scores, classes }, width, height) {
+    for (let index = 0; index < scores.length; index++) {
+        if (scores[index] < CLASS_THRESHOLD) continue;
 
-    for (let i = 0; i < scores.length; i++) {
-        if (scores[i] < CLASS_THRESHOLD) continue;
-        const label = _labels[classes[i]];
+        const label = _labels[classes[index]];
         if (label !== 'kite') continue;
 
-        // Coordinates are normalized, map to image space
-        let [x1, y1, x2, y2] = boxes.slice(i * 4, (i + 1) * 4);
+        let [x1, y1, x2, y2] = boxes.slice(index * 4, (index + 1) * 4);
+
         x1 *= width;
         x2 *= width;
         y1 *= height;
@@ -76,31 +123,38 @@ function* processPrediction({ boxes, scores, classes }, width, height) {
         yield {
             x: centerX,
             y: centerY,
-            score: (scores[i] * 100).toFixed(2),
+            score: (scores[index] * 100).toFixed(2),
         };
     }
 }
 
+/**
+ * Recebe mensagens da thread principal:
+ * Espera mensagens do tipo 'predict' contendo:
+ * - image: ImageBitmap ou ImageData
+ *
+ * Fluxo:
+ * 1) Pré-processa imagem para tensor [1, 640, 640, 3]
+ * 2) Executa o modelo (runInference)
+ * 3) Processa predições (processPrediction)
+ * 4) Envia cada predição válida de volta via postMessage
+ */
 self.onmessage = async ({ data }) => {
-    if (data.type !== 'predict') return
+    if (data.type !== 'predict') return;
     if (!_model) return;
 
-    const imageData = new ImageData(
-        new Uint8ClampedArray(data.buffer),
-        data.width,
-        data.height
-    );
-    const input = preprocessImage(imageData);
+    const input = preprocessImage(data.image);
+    const { width, height } = data.image;
 
     const inferenceResults = await runInference(input);
 
-    for (const prediction of processPrediction(inferenceResults, data.width, data.height)) {
+    for (const prediction of processPrediction(inferenceResults, width, height)) {
         postMessage({
             type: 'prediction',
             ...prediction
         });
     }
-
 };
 
+// Log de inicialização do Worker
 console.log('🧠 YOLOv5n Web Worker initialized');

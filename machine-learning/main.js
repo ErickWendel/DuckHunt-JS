@@ -20,22 +20,19 @@ export default async function main(game) {
             game.handleClick({
                 global: position,
             });
+
         }
 
     };
 
-    setInterval(() => {
+    setInterval(async () => {
         const canvas = game.app.renderer.extract.canvas(game.stage);
-
-        const ctx = canvas.getContext('2d');
-        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const bitmap = await createImageBitmap(canvas);
 
         worker.postMessage({
             type: 'predict',
-            buffer: imageData.data.buffer,
-            width: imageData.width,
-            height: imageData.height
-        }, [imageData.data.buffer]);
+            image: bitmap,
+        }, [bitmap]);
 
     }, 200); // every 200ms
 
